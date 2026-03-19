@@ -1,0 +1,202 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { Package, Mail, Lock, User, ArrowRight } from "lucide-react";
+
+type AuthMode = "login" | "register" | "reset";
+
+const Auth = () => {
+  const [mode, setMode] = useState<AuthMode>("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      if (mode === "login") {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        navigate("/");
+      } else if (mode === "register") {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { display_name: name },
+            emailRedirectTo: window.location.origin,
+          },
+        });
+        if (error) throw error;
+        toast({
+          title: "Регистрация успешна",
+          description: "Проверьте почту для подтверждения аккаунта.",
+        });
+      } else {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        toast({
+          title: "Письмо отправлено",
+          description: "Проверьте почту для восстановления пароля.",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Ошибка",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="w-full max-w-md animate-fade-in">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-2 mb-4">
+            <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
+              <Package className="w-6 h-6 text-primary-foreground" />
+            </div>
+            <span className="text-2xl font-bold text-foreground">WarehouseMe</span>
+          </div>
+          <p className="text-muted-foreground">Домашний инвентарь вещей</p>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              {mode === "login" && "Вход в аккаунт"}
+              {mode === "register" && "Регистрация"}
+              {mode === "reset" && "Восстановление пароля"}
+            </CardTitle>
+            <CardDescription>
+              {mode === "login" && "Войдите, чтобы управлять вашим инвентарём"}
+              {mode === "register" && "Создайте аккаунт для начала работы"}
+              {mode === "reset" && "Введите email для получения ссылки на восстановление"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {mode === "register" && (
+                <div className="space-y-2">
+                  <Label htmlFor="name">Имя</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="name"
+                      type="text"
+                      placeholder="Ваше имя"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+              )}
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-10"
+                    required
+                  />
+                </div>
+              </div>
+              {mode !== "reset" && (
+                <div className="space-y-2">
+                  <Label htmlFor="password">Пароль</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-10"
+                      required
+                      minLength={6}
+                    />
+                  </div>
+                </div>
+              )}
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Загрузка..." : (
+                  <>
+                    {mode === "login" && "Войти"}
+                    {mode === "register" && "Зарегистрироваться"}
+                    {mode === "reset" && "Отправить ссылку"}
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            </form>
+
+            <div className="mt-6 text-center text-sm space-y-2">
+              {mode === "login" && (
+                <>
+                  <button
+                    onClick={() => setMode("reset")}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Забыли пароль?
+                  </button>
+                  <div>
+                    <span className="text-muted-foreground">Нет аккаунта? </span>
+                    <button
+                      onClick={() => setMode("register")}
+                      className="text-accent font-medium hover:underline"
+                    >
+                      Зарегистрируйтесь
+                    </button>
+                  </div>
+                </>
+              )}
+              {mode === "register" && (
+                <div>
+                  <span className="text-muted-foreground">Уже есть аккаунт? </span>
+                  <button
+                    onClick={() => setMode("login")}
+                    className="text-accent font-medium hover:underline"
+                  >
+                    Войдите
+                  </button>
+                </div>
+              )}
+              {mode === "reset" && (
+                <button
+                  onClick={() => setMode("login")}
+                  className="text-accent font-medium hover:underline"
+                >
+                  Вернуться к входу
+                </button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default Auth;
