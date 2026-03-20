@@ -1,0 +1,1 @@
+ALTER TABLE public.items ALTER COLUMN currency SET DEFAULT 'UAH'::text;
