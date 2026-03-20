@@ -5,7 +5,7 @@ const navItems = [
   { to: "/", label: "Главная", emoji: "🏠" },
   { to: "/items", label: "Вещи", emoji: "📦" },
   { to: "/locations", label: "Локации", emoji: "📍" },
-  { to: "/warranties", label: "Гарантии", emoji: "🛡️" },
+  { to: "/expiry", label: "Сроки", emoji: "⏰" },
   { to: "/settings", label: "Ещё", emoji: "⚙️" },
 ];
 

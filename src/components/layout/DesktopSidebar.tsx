@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import {
-  Home, Package, MapPin, Tags, Shield, BarChart3, Settings, LogOut, ChevronLeft, ChevronRight
+  Home, Package, MapPin, Tags, Clock, BarChart3, Settings, LogOut, ChevronLeft, ChevronRight
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -11,7 +11,7 @@ const navItems = [
   { to: "/items", icon: Package, label: "Все вещи", emoji: "📦" },
   { to: "/locations", icon: MapPin, label: "Локации", emoji: "📍" },
   { to: "/categories", icon: Tags, label: "Категории", emoji: "🏷️" },
-  { to: "/warranties", icon: Shield, label: "Гарантии", emoji: "🛡️" },
+  { to: "/expiry", icon: Clock, label: "Сроки годности", emoji: "⏰" },
   { to: "/statistics", icon: BarChart3, label: "Статистика", emoji: "📊" },
   { to: "/settings", icon: Settings, label: "Настройки", emoji: "⚙️" },
 ];
@@ -28,7 +28,6 @@ export const DesktopSidebar = () => {
         collapsed ? "w-16" : "w-60"
       )}
     >
-      {/* Logo */}
       <div className="flex items-center gap-2 p-4 border-b border-sidebar-border">
         <div className="w-8 h-8 rounded-lg bg-sidebar-primary flex items-center justify-center flex-shrink-0">
           <Package className="w-5 h-5 text-sidebar-primary-foreground" />
@@ -38,7 +37,6 @@ export const DesktopSidebar = () => {
         )}
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 py-4 space-y-1 px-2">
         {navItems.map((item) => {
           const isActive = location.pathname === item.to || 
@@ -61,7 +59,6 @@ export const DesktopSidebar = () => {
         })}
       </nav>
 
-      {/* Bottom actions */}
       <div className="p-2 border-t border-sidebar-border space-y-1">
         <button
           onClick={signOut}

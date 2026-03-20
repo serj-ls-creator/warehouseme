@@ -10,7 +10,7 @@ import ItemDetail from "./pages/ItemDetail";
 import ItemForm from "./pages/ItemForm";
 import Locations from "./pages/Locations";
 import Categories from "./pages/Categories";
-import Warranties from "./pages/Warranties";
+import ExpiryPage from "./pages/Warranties";
 import Statistics from "./pages/Statistics";
 import SettingsPage from "./pages/Settings";
 import Auth from "./pages/Auth";
@@ -34,7 +34,8 @@ const App = () => (
             <Route path="/items/:id/edit" element={<ItemForm />} />
             <Route path="/locations" element={<Locations />} />
             <Route path="/categories" element={<Categories />} />
-            <Route path="/warranties" element={<Warranties />} />
+            <Route path="/expiry" element={<ExpiryPage />} />
+            <Route path="/warranties" element={<ExpiryPage />} />
             <Route path="/statistics" element={<Statistics />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="*" element={<NotFound />} />

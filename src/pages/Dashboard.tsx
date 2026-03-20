@@ -1,20 +1,19 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useItems, useCategories, useLocations } from "@/hooks/useData";
+import { useItems, useCategories, useLocations, getLocationPath, getCurrencySymbol } from "@/hooks/useData";
 import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Plus, Package, DollarSign, Shield, CalendarPlus } from "lucide-react";
-import { differenceInDays, format, startOfMonth } from "date-fns";
+import { Search, Plus, Package, DollarSign, Clock, CalendarPlus } from "lucide-react";
+import { differenceInDays, startOfMonth } from "date-fns";
 
 const Dashboard = () => {
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
   const { data: items, isLoading } = useItems({ search: search || undefined });
-  const { data: categories } = useCategories();
   const { data: locations } = useLocations();
 
   const now = new Date();
@@ -24,25 +23,26 @@ const Dashboard = () => {
   const totalValue = items?.reduce((sum, item) => sum + (item.price ?? 0), 0) ?? 0;
   const addedThisMonth = items?.filter(i => new Date(i.created_at) >= thisMonth).length ?? 0;
 
-  const expiringWarranties = items?.filter(i => {
+  // 3 levels: 1 week, 1 month, 3 months
+  const expiringItems = items?.filter(i => {
     if (!i.warranty_expires) return false;
     const days = differenceInDays(new Date(i.warranty_expires), now);
-    return days >= 0 && days <= 30;
-  }) ?? [];
+    return days >= 0 && days <= 90;
+  }).sort((a, b) => new Date(a.warranty_expires!).getTime() - new Date(b.warranty_expires!).getTime()) ?? [];
 
   const recentItems = items?.slice(0, 4) ?? [];
 
-  const getWarrantyBadge = (expiresDate: string) => {
+  const getExpiryBadge = (expiresDate: string) => {
     const days = differenceInDays(new Date(expiresDate), now);
-    if (days < 7) return { label: `${days} дн.`, variant: "destructive" as const };
-    if (days < 30) return { label: `${days} дн.`, variant: "warning" as const };
-    return { label: `${days} дн.`, variant: "success" as const };
+    if (days < 7) return { label: `${days} дн.`, variant: "destructive" as const, color: "border-destructive text-destructive" };
+    if (days < 30) return { label: `${days} дн.`, variant: "warning" as const, color: "border-warning text-warning" };
+    return { label: `${days} дн.`, variant: "success" as const, color: "border-success text-success" };
   };
 
   const stats = [
     { label: "Всего вещей", value: totalItems, icon: Package, color: "text-primary" },
-    { label: "Общая стоимость", value: `${totalValue.toLocaleString("ru")} ₽`, icon: DollarSign, color: "text-success" },
-    { label: "Гарантий истекает", value: expiringWarranties.length, icon: Shield, color: "text-warning" },
+    { label: "Общая стоимость", value: `${totalValue.toLocaleString("uk")} ₴`, icon: DollarSign, color: "text-success" },
+    { label: "Срок годности ⚠️", value: expiringItems.length, icon: Clock, color: "text-warning" },
     { label: "Добавлено в этом месяце", value: addedThisMonth, icon: CalendarPlus, color: "text-accent" },
   ];
 
@@ -78,18 +78,18 @@ const Dashboard = () => {
         ))}
       </div>
 
-      {/* Expiring Warranties */}
-      {expiringWarranties.length > 0 && (
+      {/* Expiring soon */}
+      {expiringItems.length > 0 && (
         <section className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-foreground">🛡️ Гарантии истекают</h2>
-            <Button variant="ghost" size="sm" onClick={() => navigate("/warranties")}>
+            <h2 className="text-lg font-semibold text-foreground">⏰ Срок годности заканчивается</h2>
+            <Button variant="ghost" size="sm" onClick={() => navigate("/expiry")}>
               Все →
             </Button>
           </div>
           <div className="flex gap-3 overflow-x-auto scroll-snap-x pb-2">
-            {expiringWarranties.map((item) => {
-              const badge = getWarrantyBadge(item.warranty_expires!);
+            {expiringItems.map((item) => {
+              const badge = getExpiryBadge(item.warranty_expires!);
               return (
                 <Card
                   key={item.id}
@@ -107,7 +107,7 @@ const Dashboard = () => {
                     <p className="font-medium text-sm text-foreground truncate">{item.name}</p>
                     <Badge
                       variant={badge.variant === "warning" ? "outline" : badge.variant === "success" ? "secondary" : "destructive"}
-                      className={badge.variant === "warning" ? "border-warning text-warning mt-1" : "mt-1"}
+                      className={badge.variant === "warning" ? `${badge.color} mt-1` : "mt-1"}
                     >
                       {badge.label}
                     </Badge>
@@ -135,34 +135,37 @@ const Dashboard = () => {
           </div>
         ) : recentItems.length > 0 ? (
           <div className="grid grid-cols-2 gap-3">
-            {recentItems.map((item) => (
-              <Card
-                key={item.id}
-                className="cursor-pointer hover:shadow-md transition-shadow animate-fade-in"
-                onClick={() => navigate(`/items/${item.id}`)}
-              >
-                <CardContent className="p-3">
-                  <div className="w-full h-24 bg-muted rounded-lg flex items-center justify-center mb-2">
-                    {item.photo_url ? (
-                      <img src={item.photo_url} alt={item.name} className="w-full h-full object-cover rounded-lg" />
-                    ) : (
-                      <span className="text-3xl">{item.categories?.icon ?? "📦"}</span>
+            {recentItems.map((item) => {
+              const locationBreadcrumb = item.location_id && locations
+                ? getLocationPath(item.location_id, locations).map(l => `${l.icon ?? "📍"} ${l.name}`).join(" → ")
+                : null;
+              return (
+                <Card
+                  key={item.id}
+                  className="cursor-pointer hover:shadow-md transition-shadow animate-fade-in"
+                  onClick={() => navigate(`/items/${item.id}`)}
+                >
+                  <CardContent className="p-3">
+                    <div className="w-full h-24 bg-muted rounded-lg flex items-center justify-center mb-2">
+                      {item.photo_url ? (
+                        <img src={item.photo_url} alt={item.name} className="w-full h-full object-cover rounded-lg" />
+                      ) : (
+                        <span className="text-3xl">{item.categories?.icon ?? "📦"}</span>
+                      )}
+                    </div>
+                    <p className="font-medium text-sm text-foreground truncate">{item.name}</p>
+                    {locationBreadcrumb && (
+                      <p className="text-xs text-muted-foreground truncate">{locationBreadcrumb}</p>
                     )}
-                  </div>
-                  <p className="font-medium text-sm text-foreground truncate">{item.name}</p>
-                  {item.locations && (
-                    <p className="text-xs text-muted-foreground truncate">
-                      {item.locations.icon} {item.locations.name}
-                    </p>
-                  )}
-                  {item.price && (
-                    <p className="text-sm font-semibold text-foreground mt-1">
-                      {item.price.toLocaleString("ru")} ₽
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
+                    {item.price && (
+                      <p className="text-sm font-semibold text-foreground mt-1">
+                        {item.price.toLocaleString("uk")} {getCurrencySymbol(item.currency)}
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         ) : (
           <Card>

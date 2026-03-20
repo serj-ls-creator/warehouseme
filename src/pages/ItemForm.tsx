@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { useItem, useCreateItem, useUpdateItem, useCategories, useLocations, useCreateCategory, useCreateLocation } from "@/hooks/useData";
+import { useItem, useCreateItem, useUpdateItem, useCategories, useLocations, useCreateCategory, useCreateLocation, getLocationPath } from "@/hooks/useData";
 import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,9 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
-import { useEffect } from "react";
 
-const steps = ["Основное", "Местонахождение", "Покупка и гарантия", "Заметки"];
+const steps = ["Основное", "Местонахождение", "Покупка и срок годности", "Заметки"];
 
 const ItemForm = () => {
   const { id } = useParams<{ id: string }>();
@@ -37,8 +36,8 @@ const ItemForm = () => {
     location_id: "",
     purchase_date: "",
     price: "",
-    currency: "RUB",
-    hasWarranty: false,
+    currency: "UAH",
+    hasExpiry: false,
     warranty_expires: "",
     serial_number: "",
     barcode: "",
@@ -57,8 +56,8 @@ const ItemForm = () => {
         location_id: existingItem.location_id ?? "",
         purchase_date: existingItem.purchase_date ?? "",
         price: existingItem.price?.toString() ?? "",
-        currency: existingItem.currency ?? "RUB",
-        hasWarranty: !!existingItem.warranty_expires,
+        currency: existingItem.currency ?? "UAH",
+        hasExpiry: !!existingItem.warranty_expires,
         warranty_expires: existingItem.warranty_expires ?? "",
         serial_number: existingItem.serial_number ?? "",
         barcode: existingItem.barcode ?? "",
@@ -97,8 +96,8 @@ const ItemForm = () => {
       location_id: form.location_id || null,
       purchase_date: form.purchase_date || null,
       price: form.price ? parseFloat(form.price) : null,
-      currency: form.currency || "RUB",
-      warranty_expires: form.hasWarranty && form.warranty_expires ? form.warranty_expires : null,
+      currency: form.currency || "UAH",
+      warranty_expires: form.hasExpiry && form.warranty_expires ? form.warranty_expires : null,
       serial_number: form.serial_number || null,
       barcode: form.barcode || null,
       notes: form.notes || null,
@@ -113,6 +112,22 @@ const ItemForm = () => {
   };
 
   const canNext = step === 0 ? form.name.trim().length > 0 : true;
+
+  // Build nested location options
+  const getLocationOptions = () => {
+    if (!locations) return [];
+    const result: { id: string; label: string; depth: number }[] = [];
+    const buildTree = (parentId: string | null, depth: number) => {
+      const children = locations.filter(l => l.parent_id === parentId);
+      children.forEach(child => {
+        const prefix = "—".repeat(depth);
+        result.push({ id: child.id, label: `${prefix} ${child.icon ?? "📍"} ${child.name}`, depth });
+        buildTree(child.id, depth + 1);
+      });
+    };
+    buildTree(null, 0);
+    return result;
+  };
 
   return (
     <AppLayout>
@@ -178,8 +193,10 @@ const ItemForm = () => {
                     <SelectValue placeholder="Выберите локацию" />
                   </SelectTrigger>
                   <SelectContent>
-                    {locations?.map((l) => (
-                      <SelectItem key={l.id} value={l.id}>{l.icon} {l.name}</SelectItem>
+                    {getLocationOptions().map((l) => (
+                      <SelectItem key={l.id} value={l.id}>
+                        <span style={{ paddingLeft: `${l.depth * 12}px` }}>{l.label}</span>
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -191,7 +208,7 @@ const ItemForm = () => {
             </>
           )}
 
-          {/* Step 3: Purchase & Warranty */}
+          {/* Step 3: Purchase & Expiry */}
           {step === 2 && (
             <>
               <div>
@@ -210,20 +227,20 @@ const ItemForm = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="RUB">₽ Рубли</SelectItem>
-                      <SelectItem value="USD">$ Доллары</SelectItem>
-                      <SelectItem value="EUR">€ Евро</SelectItem>
+                      <SelectItem value="UAH">₴ Гривні</SelectItem>
+                      <SelectItem value="USD">$ Долари</SelectItem>
+                      <SelectItem value="EUR">€ Євро</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <Switch checked={form.hasWarranty} onCheckedChange={(v) => update("hasWarranty", v)} />
-                <Label>Есть гарантия</Label>
+                <Switch checked={form.hasExpiry} onCheckedChange={(v) => update("hasExpiry", v)} />
+                <Label>Есть срок годности</Label>
               </div>
-              {form.hasWarranty && (
+              {form.hasExpiry && (
                 <div>
-                  <Label>Дата окончания гарантии</Label>
+                  <Label>Дата окончания срока годности</Label>
                   <Input type="date" value={form.warranty_expires} onChange={(e) => update("warranty_expires", e.target.value)} className="mt-1" />
                 </div>
               )}

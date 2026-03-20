@@ -43,6 +43,34 @@ export interface Location {
   created_at: string;
 }
 
+// Helper: build full location path
+export const getLocationPath = (locationId: string | null, locations: Location[]): Location[] => {
+  if (!locationId || !locations.length) return [];
+  const path: Location[] = [];
+  let current = locations.find(l => l.id === locationId);
+  while (current) {
+    path.unshift(current);
+    current = current.parent_id ? locations.find(l => l.id === current!.parent_id) : undefined;
+  }
+  return path;
+};
+
+// Helper: get location display with nesting indent
+export const getLocationDisplayName = (location: Location, locations: Location[]): string => {
+  const path = getLocationPath(location.id, locations);
+  return path.map(l => l.name).join(" → ");
+};
+
+// Helper: format currency symbol
+export const getCurrencySymbol = (currency: string | null): string => {
+  switch (currency) {
+    case "UAH": return "₴";
+    case "USD": return "$";
+    case "EUR": return "€";
+    default: return "₴";
+  }
+};
+
 export const useItems = (filters?: { category_id?: string; location_id?: string; search?: string }) => {
   return useQuery({
     queryKey: ["items", filters],
@@ -171,6 +199,27 @@ export const useCreateCategory = () => {
   });
 };
 
+export const useUpdateCategory = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<Category> & { id: string }) => {
+      const { data, error } = await supabase.from("categories").update(updates).eq("id", id).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      queryClient.invalidateQueries({ queryKey: ["items"] });
+      toast({ title: "Категория обновлена" });
+    },
+    onError: (e: Error) => {
+      toast({ title: "Ошибка", description: e.message, variant: "destructive" });
+    },
+  });
+};
+
 export const useDeleteCategory = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -211,6 +260,27 @@ export const useCreateLocation = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["locations"] });
       toast({ title: "Локация создана" });
+    },
+    onError: (e: Error) => {
+      toast({ title: "Ошибка", description: e.message, variant: "destructive" });
+    },
+  });
+};
+
+export const useUpdateLocation = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<Location> & { id: string }) => {
+      const { data, error } = await supabase.from("locations").update(updates).eq("id", id).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["locations"] });
+      queryClient.invalidateQueries({ queryKey: ["items"] });
+      toast({ title: "Локация обновлена" });
     },
     onError: (e: Error) => {
       toast({ title: "Ошибка", description: e.message, variant: "destructive" });
