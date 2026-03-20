@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useItems, useCategories, useLocations } from "@/hooks/useData";
+import { useItems, useCategories, useLocations, getLocationPath, getCurrencySymbol } from "@/hooks/useData";
 import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -27,24 +27,40 @@ const Items = () => {
   const { data: categories } = useCategories();
   const { data: locations } = useLocations();
 
+  const handleCategoryChange = (value: string) => {
+    setCategoryFilter(value === "all" ? "" : value);
+  };
+
+  const handleLocationChange = (value: string) => {
+    setLocationFilter(value === "all" ? "" : value);
+  };
+
   const sortedItems = [...(items ?? [])].sort((a, b) => {
     switch (sortBy) {
       case "name": return a.name.localeCompare(b.name);
       case "price": return (b.price ?? 0) - (a.price ?? 0);
-      case "warranty": return (a.warranty_expires ?? "9999").localeCompare(b.warranty_expires ?? "9999");
+      case "expiry": return (a.warranty_expires ?? "9999").localeCompare(b.warranty_expires ?? "9999");
       default: return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     }
   });
 
   const now = new Date();
 
-  const getWarrantyBadge = (expiresDate: string | null) => {
+  const getExpiryBadge = (expiresDate: string | null) => {
     if (!expiresDate) return null;
     const days = differenceInDays(new Date(expiresDate), now);
-    if (days < 0) return { label: "Истекла", className: "bg-muted text-muted-foreground" };
+    if (days < 0) return { label: "Просрочено", className: "bg-muted text-muted-foreground" };
     if (days < 7) return { label: `${days} дн.`, className: "bg-danger text-danger-foreground" };
     if (days < 30) return { label: `${days} дн.`, className: "bg-warning text-warning-foreground" };
-    return { label: `${days} дн.`, className: "bg-success text-success-foreground" };
+    if (days < 90) return { label: `${days} дн.`, className: "bg-success text-success-foreground" };
+    return null;
+  };
+
+  const getLocationBreadcrumb = (locationId: string | null) => {
+    if (!locationId || !locations) return null;
+    const path = getLocationPath(locationId, locations);
+    if (path.length === 0) return null;
+    return path.map(l => `${l.icon ?? "📍"} ${l.name}`).join(" → ");
   };
 
   return (
@@ -81,7 +97,7 @@ const Items = () => {
           />
         </div>
         <div className="flex gap-2 overflow-x-auto scroll-snap-x pb-1">
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <Select value={categoryFilter || "all"} onValueChange={handleCategoryChange}>
             <SelectTrigger className="w-[150px] flex-shrink-0 bg-card">
               <SelectValue placeholder="Категория" />
             </SelectTrigger>
@@ -92,7 +108,7 @@ const Items = () => {
               ))}
             </SelectContent>
           </Select>
-          <Select value={locationFilter} onValueChange={setLocationFilter}>
+          <Select value={locationFilter || "all"} onValueChange={handleLocationChange}>
             <SelectTrigger className="w-[150px] flex-shrink-0 bg-card">
               <SelectValue placeholder="Локация" />
             </SelectTrigger>
@@ -111,7 +127,7 @@ const Items = () => {
               <SelectItem value="created_at">По дате</SelectItem>
               <SelectItem value="name">По имени</SelectItem>
               <SelectItem value="price">По цене</SelectItem>
-              <SelectItem value="warranty">По гарантии</SelectItem>
+              <SelectItem value="expiry">По сроку годности</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -137,7 +153,8 @@ const Items = () => {
       ) : viewMode === "grid" ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {sortedItems.map((item) => {
-            const warranty = getWarrantyBadge(item.warranty_expires);
+            const expiry = getExpiryBadge(item.warranty_expires);
+            const locationBreadcrumb = getLocationBreadcrumb(item.location_id);
             return (
               <Card
                 key={item.id}
@@ -153,18 +170,18 @@ const Items = () => {
                     )}
                   </div>
                   <p className="font-medium text-sm text-foreground truncate">{item.name}</p>
-                  {item.locations && (
+                  {locationBreadcrumb && (
                     <p className="text-xs text-muted-foreground truncate">
-                      {item.locations.icon} {item.locations.name}
+                      {locationBreadcrumb}
                     </p>
                   )}
                   <div className="flex items-center justify-between mt-1">
                     {item.price && (
-                      <span className="text-sm font-semibold text-foreground">{item.price.toLocaleString("ru")} ₽</span>
+                      <span className="text-sm font-semibold text-foreground">{item.price.toLocaleString("uk")} {getCurrencySymbol(item.currency)}</span>
                     )}
-                    {warranty && (
-                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${warranty.className}`}>
-                        {warranty.label}
+                    {expiry && (
+                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${expiry.className}`}>
+                        {expiry.label}
                       </span>
                     )}
                   </div>
@@ -176,7 +193,8 @@ const Items = () => {
       ) : (
         <div className="space-y-2">
           {sortedItems.map((item) => {
-            const warranty = getWarrantyBadge(item.warranty_expires);
+            const expiry = getExpiryBadge(item.warranty_expires);
+            const locationBreadcrumb = getLocationBreadcrumb(item.location_id);
             return (
               <Card
                 key={item.id}
@@ -193,20 +211,20 @@ const Items = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm text-foreground truncate">{item.name}</p>
-                    {item.locations && (
-                      <p className="text-xs text-muted-foreground">{item.locations.icon} {item.locations.name}</p>
+                    {locationBreadcrumb && (
+                      <p className="text-xs text-muted-foreground truncate">{locationBreadcrumb}</p>
                     )}
                     {item.purchase_date && (
-                      <p className="text-xs text-muted-foreground">Куплено: {new Date(item.purchase_date).toLocaleDateString("ru")}</p>
+                      <p className="text-xs text-muted-foreground">Куплено: {new Date(item.purchase_date).toLocaleDateString("uk")}</p>
                     )}
                   </div>
                   <div className="text-right flex-shrink-0">
                     {item.price && (
-                      <p className="text-sm font-semibold text-foreground">{item.price.toLocaleString("ru")} ₽</p>
+                      <p className="text-sm font-semibold text-foreground">{item.price.toLocaleString("uk")} {getCurrencySymbol(item.currency)}</p>
                     )}
-                    {warranty && (
-                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${warranty.className}`}>
-                        {warranty.label}
+                    {expiry && (
+                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${expiry.className}`}>
+                        {expiry.label}
                       </span>
                     )}
                   </div>

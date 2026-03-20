@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useItems } from "@/hooks/useData";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "@/components/layout/AppLayout";
@@ -7,33 +6,33 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Shield, AlertTriangle } from "lucide-react";
+import { Clock, AlertTriangle } from "lucide-react";
 import { differenceInDays, format } from "date-fns";
 
-const Warranties = () => {
+const ExpiryPage = () => {
   const { data: items, isLoading } = useItems();
   const navigate = useNavigate();
   const now = new Date();
 
-  const warrantyItems = items?.filter(i => i.warranty_expires) ?? [];
+  const expiryItems = items?.filter(i => i.warranty_expires) ?? [];
 
-  const expiring = warrantyItems.filter(i => {
+  const expiringSoon = expiryItems.filter(i => {
     const days = differenceInDays(new Date(i.warranty_expires!), now);
-    return days >= 0 && days <= 30;
+    return days >= 0 && days <= 90;
   }).sort((a, b) => new Date(a.warranty_expires!).getTime() - new Date(b.warranty_expires!).getTime());
 
-  const active = warrantyItems.filter(i => {
+  const active = expiryItems.filter(i => {
     const days = differenceInDays(new Date(i.warranty_expires!), now);
-    return days > 30;
+    return days > 90;
   }).sort((a, b) => new Date(a.warranty_expires!).getTime() - new Date(b.warranty_expires!).getTime());
 
-  const expired = warrantyItems.filter(i => {
+  const expired = expiryItems.filter(i => {
     return differenceInDays(new Date(i.warranty_expires!), now) < 0;
   }).sort((a, b) => new Date(b.warranty_expires!).getTime() - new Date(a.warranty_expires!).getTime());
 
-  const critical = expiring.filter(i => differenceInDays(new Date(i.warranty_expires!), now) < 7);
+  const critical = expiringSoon.filter(i => differenceInDays(new Date(i.warranty_expires!), now) < 7);
 
-  const WarrantyCard = ({ item }: { item: typeof warrantyItems[0] }) => {
+  const ExpiryCard = ({ item }: { item: typeof expiryItems[0] }) => {
     const daysLeft = differenceInDays(new Date(item.warranty_expires!), now);
     const progress = item.purchase_date
       ? Math.min(100, Math.max(0, (differenceInDays(now, new Date(item.purchase_date)) / differenceInDays(new Date(item.warranty_expires!), new Date(item.purchase_date))) * 100))
@@ -58,10 +57,10 @@ const Warranties = () => {
               <Progress value={progress} className="h-1.5 mt-2" />
             </div>
             <div className="text-right flex-shrink-0">
-              <p className={`text-2xl font-bold ${daysLeft < 0 ? "text-muted-foreground" : daysLeft < 7 ? "text-destructive" : daysLeft < 30 ? "text-warning" : "text-success"}`}>
+              <p className={`text-2xl font-bold ${daysLeft < 0 ? "text-muted-foreground" : daysLeft < 7 ? "text-destructive" : daysLeft < 30 ? "text-warning" : daysLeft < 90 ? "text-success" : "text-foreground"}`}>
                 {daysLeft < 0 ? "—" : daysLeft}
               </p>
-              <p className="text-xs text-muted-foreground">{daysLeft < 0 ? "истекла" : "дней"}</p>
+              <p className="text-xs text-muted-foreground">{daysLeft < 0 ? "просрочено" : "дней"}</p>
             </div>
           </div>
         </CardContent>
@@ -71,7 +70,7 @@ const Warranties = () => {
 
   return (
     <AppLayout>
-      <h1 className="text-2xl font-bold text-foreground mb-6">🛡️ Гарантии</h1>
+      <h1 className="text-2xl font-bold text-foreground mb-6">⏰ Сроки годности</h1>
 
       {/* Critical banner */}
       {critical.length > 0 && (
@@ -79,7 +78,7 @@ const Warranties = () => {
           <CardContent className="p-4 flex items-center gap-3">
             <AlertTriangle className="h-5 w-5 text-destructive flex-shrink-0" />
             <p className="text-sm text-foreground">
-              <strong>{critical.length}</strong> {critical.length === 1 ? "гарантия истекает" : "гарантий истекают"} менее чем через 7 дней!
+              <strong>{critical.length}</strong> {critical.length === 1 ? "вещь просрочивается" : "вещей просрочиваются"} менее чем через 7 дней!
             </p>
           </CardContent>
         </Card>
@@ -92,26 +91,26 @@ const Warranties = () => {
       ) : (
         <Tabs defaultValue="expiring">
           <TabsList className="w-full mb-4">
-            <TabsTrigger value="expiring" className="flex-1">🔴 Истекают ({expiring.length})</TabsTrigger>
-            <TabsTrigger value="active" className="flex-1">🟢 Активные ({active.length})</TabsTrigger>
-            <TabsTrigger value="expired" className="flex-1">⚫ Истекли ({expired.length})</TabsTrigger>
+            <TabsTrigger value="expiring" className="flex-1">🔴 Заканчивается ({expiringSoon.length})</TabsTrigger>
+            <TabsTrigger value="active" className="flex-1">🟢 Годные ({active.length})</TabsTrigger>
+            <TabsTrigger value="expired" className="flex-1">⚫ Просрочено ({expired.length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="expiring" className="space-y-2">
-            {expiring.length > 0 ? expiring.map(item => <WarrantyCard key={item.id} item={item} />) : (
-              <Card><CardContent className="p-8 text-center text-muted-foreground">Нет истекающих гарантий</CardContent></Card>
+            {expiringSoon.length > 0 ? expiringSoon.map(item => <ExpiryCard key={item.id} item={item} />) : (
+              <Card><CardContent className="p-8 text-center text-muted-foreground">Нет вещей с заканчивающимся сроком</CardContent></Card>
             )}
           </TabsContent>
 
           <TabsContent value="active" className="space-y-2">
-            {active.length > 0 ? active.map(item => <WarrantyCard key={item.id} item={item} />) : (
-              <Card><CardContent className="p-8 text-center text-muted-foreground">Нет активных гарантий</CardContent></Card>
+            {active.length > 0 ? active.map(item => <ExpiryCard key={item.id} item={item} />) : (
+              <Card><CardContent className="p-8 text-center text-muted-foreground">Нет вещей с активным сроком годности</CardContent></Card>
             )}
           </TabsContent>
 
           <TabsContent value="expired" className="space-y-2">
-            {expired.length > 0 ? expired.map(item => <WarrantyCard key={item.id} item={item} />) : (
-              <Card><CardContent className="p-8 text-center text-muted-foreground">Нет истекших гарантий</CardContent></Card>
+            {expired.length > 0 ? expired.map(item => <ExpiryCard key={item.id} item={item} />) : (
+              <Card><CardContent className="p-8 text-center text-muted-foreground">Нет просроченных вещей</CardContent></Card>
             )}
           </TabsContent>
         </Tabs>
@@ -120,4 +119,4 @@ const Warranties = () => {
   );
 };
 
-export default Warranties;
+export default ExpiryPage;
