@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useItems, useCategories, useLocations, getLocationPath, getCurrencySymbol } from "@/hooks/useData";
+import { useItems, useCategories, useLocations, getLocationPath, getCategoryPath, getCurrencySymbol } from "@/hooks/useData";
 import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
