@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useItem, useDeleteItem, useLocations, getLocationPath, getCurrencySymbol } from "@/hooks/useData";
+import { useItem, useDeleteItem, useLocations, useCategories, getLocationPath, getCategoryPath, getCurrencySymbol } from "@/hooks/useData";
 import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
