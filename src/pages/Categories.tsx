@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useCategories, useCreateCategory, useDeleteCategory, useUpdateCategory, useItems } from "@/hooks/useData";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
