@@ -103,6 +103,9 @@ const Categories = () => {
   const deleteCategory = useDeleteCategory();
   const updateCategory = useUpdateCategory();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [seeding, setSeeding] = useState(false);
 
   const [newName, setNewName] = useState("");
   const [newIcon, setNewIcon] = useState("📦");
