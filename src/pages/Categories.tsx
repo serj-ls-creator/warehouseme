@@ -225,7 +225,25 @@ const Categories = () => {
         <Card>
           <CardContent className="p-8 text-center">
             <Tags className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-            <p className="text-muted-foreground">Добавьте первую категорию</p>
+            <p className="text-muted-foreground mb-4">Добавьте первую категорию</p>
+            <Button
+              variant="outline"
+              onClick={async () => {
+                setSeeding(true);
+                try {
+                  await supabase.functions.invoke('seed-categories');
+                  queryClient.invalidateQueries({ queryKey: ["categories"] });
+                  toast({ title: "Категории добавлены!" });
+                } catch {
+                  toast({ title: "Ошибка", variant: "destructive" });
+                }
+                setSeeding(false);
+              }}
+              disabled={seeding}
+            >
+              {seeding ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Download className="h-4 w-4 mr-2" />}
+              Загрузить стандартные категории
+            </Button>
           </CardContent>
         </Card>
       )}
