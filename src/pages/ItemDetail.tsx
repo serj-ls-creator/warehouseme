@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useItem, useDeleteItem, useLocations, getLocationPath, getCurrencySymbol } from "@/hooks/useData";
+import { useItem, useDeleteItem, useLocations, useCategories, getLocationPath, getCategoryPath, getCurrencySymbol } from "@/hooks/useData";
 import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ const ItemDetail = () => {
   const navigate = useNavigate();
   const { data: item, isLoading } = useItem(id!);
   const { data: locations } = useLocations();
+  const { data: categories } = useCategories();
   const deleteItem = useDeleteItem();
   const { toast } = useToast();
 
@@ -113,10 +114,14 @@ const ItemDetail = () => {
       {/* Name & Category */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-foreground">{item.name}</h1>
-        {item.categories && (
-          <Badge variant="secondary" className="mt-2" style={{ borderColor: item.categories.color ?? undefined }}>
-            {item.categories.icon} {item.categories.name}
-          </Badge>
+        {item.category_id && categories && categories.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-2">
+            {getCategoryPath(item.category_id, categories).map((c, i) => (
+              <Badge key={c.id} variant="secondary" style={{ borderColor: c.color ?? undefined }}>
+                {c.icon} {c.name}
+              </Badge>
+            ))}
+          </div>
         )}
         {item.description && <p className="text-muted-foreground mt-2">{item.description}</p>}
       </div>
