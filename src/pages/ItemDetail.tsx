@@ -19,6 +19,7 @@ const ItemDetail = () => {
   const navigate = useNavigate();
   const { data: item, isLoading } = useItem(id!);
   const { data: locations } = useLocations();
+  const { data: categories } = useCategories();
   const deleteItem = useDeleteItem();
   const { toast } = useToast();
 
