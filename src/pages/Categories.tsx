@@ -16,7 +16,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
-import { Plus, Trash2, Tags, Edit, ChevronRight, ChevronDown } from "lucide-react";
+import { Plus, Trash2, Tags, Edit, ChevronRight, ChevronDown, Loader2, Download } from "lucide-react";
 import type { Category } from "@/hooks/useData";
 
 const defaultEmojis = ["💻", "🔧", "👕", "📚", "🧸", "🏠", "🍳", "💊", "📄", "🎮", "📦", "🎧", "🚗", "⚽", "🎨", "🧴", "🌱", "🏗️", "🎁", "🏋️"];
