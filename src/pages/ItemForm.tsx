@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { useItem, useCreateItem, useUpdateItem, useCategories, useLocations, useCreateCategory, useCreateLocation, getLocationPath } from "@/hooks/useData";
+import { useItem, useCreateItem, useUpdateItem, useCategories, useLocations, useCreateCategory, useCreateLocation, useBarcodeLookup } from "@/hooks/useData";
 import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Search, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const steps = ["Основное", "Местонахождение", "Покупка и срок годности", "Заметки"];
 
@@ -20,6 +21,7 @@ const ItemForm = () => {
   const isEdit = !!id && id !== "new";
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { toast } = useToast();
   const { data: existingItem } = useItem(isEdit ? id : "");
   const { data: categories } = useCategories();
   const { data: locations } = useLocations();
@@ -27,6 +29,7 @@ const ItemForm = () => {
   const updateItem = useUpdateItem();
   const createCategory = useCreateCategory();
   const createLocation = useCreateLocation();
+  const barcodeLookup = useBarcodeLookup();
 
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({
@@ -70,9 +73,25 @@ const ItemForm = () => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleBarcodeLookup = async () => {
+    if (!form.barcode.trim()) return;
+    const result = await barcodeLookup.mutateAsync(form.barcode.trim());
+    if (result.found) {
+      if (result.name && !form.name) update("name", result.name);
+      if (result.description && !form.description) update("description", result.description);
+      if (result.brand) {
+        const desc = form.description ? `${form.description}\nБренд: ${result.brand}` : `Бренд: ${result.brand}`;
+        update("description", desc);
+      }
+      toast({ title: "Товар найден!", description: result.name || "Данные заполнены автоматически" });
+    } else {
+      toast({ title: "Товар не найден", description: "Попробуйте ввести данные вручную", variant: "destructive" });
+    }
+  };
+
   const handleAddCategory = async () => {
     if (!newCategoryName.trim() || !user) return;
-    const result = await createCategory.mutateAsync({ user_id: user.id, name: newCategoryName, icon: "📦", color: "#1E2A4A" });
+    const result = await createCategory.mutateAsync({ user_id: user.id, name: newCategoryName, icon: "📦", color: "#1E2A4A", parent_id: null });
     update("category_id", result.id);
     setNewCategoryName("");
   };
@@ -129,6 +148,22 @@ const ItemForm = () => {
     return result;
   };
 
+  // Build nested category options
+  const getCategoryOptions = () => {
+    if (!categories) return [];
+    const result: { id: string; label: string; depth: number }[] = [];
+    const buildTree = (parentId: string | null, depth: number) => {
+      const children = categories.filter(c => c.parent_id === parentId);
+      children.forEach(child => {
+        const prefix = "—".repeat(depth);
+        result.push({ id: child.id, label: `${prefix} ${child.icon ?? "📦"} ${child.name}`, depth });
+        buildTree(child.id, depth + 1);
+      });
+    };
+    buildTree(null, 0);
+    return result;
+  };
+
   return (
     <AppLayout>
       <div className="flex items-center gap-3 mb-6">
@@ -155,6 +190,26 @@ const ItemForm = () => {
           {/* Step 1: Basic */}
           {step === 0 && (
             <>
+              {/* Barcode lookup */}
+              <div>
+                <Label>Штрихкод (поиск товара)</Label>
+                <div className="flex gap-2 mt-1">
+                  <Input
+                    value={form.barcode}
+                    onChange={(e) => update("barcode", e.target.value)}
+                    placeholder="Введите штрихкод"
+                    className="flex-1"
+                  />
+                  <Button
+                    variant="outline"
+                    onClick={handleBarcodeLookup}
+                    disabled={!form.barcode.trim() || barcodeLookup.isPending}
+                  >
+                    {barcodeLookup.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Введите штрихкод и нажмите поиск для автозаполнения</p>
+              </div>
               <div>
                 <Label>Название *</Label>
                 <Input value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="Например: MacBook Pro" className="mt-1" />
@@ -170,8 +225,10 @@ const ItemForm = () => {
                     <SelectValue placeholder="Выберите категорию" />
                   </SelectTrigger>
                   <SelectContent>
-                    {categories?.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>{c.icon} {c.name}</SelectItem>
+                    {getCategoryOptions().map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        <span style={{ paddingLeft: `${c.depth * 12}px` }}>{c.label}</span>
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -247,10 +304,6 @@ const ItemForm = () => {
               <div>
                 <Label>Серийный номер</Label>
                 <Input value={form.serial_number} onChange={(e) => update("serial_number", e.target.value)} placeholder="S/N" className="mt-1" />
-              </div>
-              <div>
-                <Label>Штрихкод</Label>
-                <Input value={form.barcode} onChange={(e) => update("barcode", e.target.value)} placeholder="Штрихкод" className="mt-1" />
               </div>
             </>
           )}

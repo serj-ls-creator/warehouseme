@@ -30,6 +30,7 @@ export interface Category {
   name: string;
   icon: string | null;
   color: string | null;
+  parent_id: string | null;
   created_at: string;
 }
 
@@ -55,13 +56,28 @@ export const getLocationPath = (locationId: string | null, locations: Location[]
   return path;
 };
 
-// Helper: get location display with nesting indent
 export const getLocationDisplayName = (location: Location, locations: Location[]): string => {
   const path = getLocationPath(location.id, locations);
   return path.map(l => l.name).join(" → ");
 };
 
-// Helper: format currency symbol
+// Helper: build full category path
+export const getCategoryPath = (categoryId: string | null, categories: Category[]): Category[] => {
+  if (!categoryId || !categories.length) return [];
+  const path: Category[] = [];
+  let current = categories.find(c => c.id === categoryId);
+  while (current) {
+    path.unshift(current);
+    current = current.parent_id ? categories.find(c => c.id === current!.parent_id) : undefined;
+  }
+  return path;
+};
+
+export const getCategoryDisplayName = (categoryId: string | null, categories: Category[]): string => {
+  const path = getCategoryPath(categoryId, categories);
+  return path.map(c => `${c.icon ?? ''} ${c.name}`).join(" → ");
+};
+
 export const getCurrencySymbol = (currency: string | null): string => {
   switch (currency) {
     case "UAH": return "₴";
@@ -300,6 +316,31 @@ export const useDeleteLocation = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["locations"] });
       toast({ title: "Локация удалена" });
+    },
+  });
+};
+
+// Barcode lookup
+export const useBarcodeLookup = () => {
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (barcode: string) => {
+      const { data, error } = await supabase.functions.invoke('barcode-lookup', {
+        body: { barcode },
+      });
+      if (error) throw error;
+      return data as {
+        found: boolean;
+        name?: string;
+        description?: string;
+        brand?: string;
+        image_url?: string;
+        barcode: string;
+      };
+    },
+    onError: (e: Error) => {
+      toast({ title: "Ошибка поиска", description: e.message, variant: "destructive" });
     },
   });
 };
