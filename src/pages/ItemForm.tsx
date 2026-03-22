@@ -14,7 +14,9 @@ import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight, Check, Search, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-const steps = ["Основное", "Местонахождение", "Покупка и срок годности", "Заметки"];
+const steps = ["Основное", "Место", "Покупка", "Заметки"];
+
+const ICON_OPTIONS = ["📦", "💻", "📱", "🔧", "👕", "🍳", "🧸", "💊", "📚", "🎮", "🏠", "🎨", "🌱", "📄", "🏗️", "🎁", "🧴", "🏋️", "⚽", "🎸", "🔌", "🛋️", "🪑", "🛏️", "👟", "🧥", "📷", "🎧", "🪀", "🧩"];
 
 const ItemForm = () => {
   const { id } = useParams<{ id: string }>();
@@ -45,10 +47,12 @@ const ItemForm = () => {
     serial_number: "",
     barcode: "",
     notes: "",
+    icon: "",
   });
 
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newLocationName, setNewLocationName] = useState("");
+  const [useIcon, setUseIcon] = useState(false);
 
   useEffect(() => {
     if (existingItem && isEdit) {
@@ -65,6 +69,7 @@ const ItemForm = () => {
         serial_number: existingItem.serial_number ?? "",
         barcode: existingItem.barcode ?? "",
         notes: existingItem.notes ?? "",
+        icon: "",
       });
     }
   }, [existingItem, isEdit]);
@@ -110,7 +115,7 @@ const ItemForm = () => {
       user_id: user.id,
       name: form.name.trim(),
       description: form.description || null,
-      photo_url: null,
+      photo_url: useIcon && form.icon ? form.icon : null,
       category_id: form.category_id || null,
       location_id: form.location_id || null,
       purchase_date: form.purchase_date || null,
@@ -132,7 +137,6 @@ const ItemForm = () => {
 
   const canNext = step === 0 ? form.name.trim().length > 0 : true;
 
-  // Build nested location options
   const getLocationOptions = () => {
     if (!locations) return [];
     const result: { id: string; label: string; depth: number }[] = [];
@@ -148,7 +152,6 @@ const ItemForm = () => {
     return result;
   };
 
-  // Build nested category options
   const getCategoryOptions = () => {
     if (!categories) return [];
     const result: { id: string; label: string; depth: number }[] = [];
@@ -175,11 +178,20 @@ const ItemForm = () => {
         </h1>
       </div>
 
-      {/* Progress */}
+      {/* Progress - fixed mobile spacing */}
       <div className="mb-6">
-        <div className="flex justify-between text-xs text-muted-foreground mb-2">
+        <div className="flex justify-between gap-2 text-xs text-muted-foreground mb-2">
           {steps.map((s, i) => (
-            <span key={s} className={i === step ? "text-foreground font-medium" : ""}>{s}</span>
+            <span
+              key={s}
+              className={`text-center flex-1 px-1 py-1 rounded-md transition-colors ${
+                i === step
+                  ? "bg-primary text-primary-foreground font-medium"
+                  : "bg-muted"
+              }`}
+            >
+              {s}
+            </span>
           ))}
         </div>
         <Progress value={((step + 1) / steps.length) * 100} className="h-1.5" />
@@ -190,7 +202,11 @@ const ItemForm = () => {
           {/* Step 1: Basic */}
           {step === 0 && (
             <>
-              {/* Barcode lookup */}
+              <div>
+                <Label>Название *</Label>
+                <Input value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="Например: MacBook Pro" className="mt-1" />
+              </div>
+              {/* Barcode under name */}
               <div>
                 <Label>Штрихкод (поиск товара)</Label>
                 <div className="flex gap-2 mt-1">
@@ -211,13 +227,30 @@ const ItemForm = () => {
                 <p className="text-xs text-muted-foreground mt-1">Введите штрихкод и нажмите поиск для автозаполнения</p>
               </div>
               <div>
-                <Label>Название *</Label>
-                <Input value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="Например: MacBook Pro" className="mt-1" />
-              </div>
-              <div>
                 <Label>Описание</Label>
                 <Textarea value={form.description} onChange={(e) => update("description", e.target.value)} placeholder="Описание вещи" className="mt-1" rows={3} />
               </div>
+              {/* Icon instead of photo */}
+              <div className="flex items-center gap-3">
+                <Switch checked={useIcon} onCheckedChange={setUseIcon} />
+                <Label>Использовать иконку вместо фото</Label>
+              </div>
+              {useIcon && (
+                <div className="flex flex-wrap gap-2">
+                  {ICON_OPTIONS.map(icon => (
+                    <button
+                      key={icon}
+                      type="button"
+                      className={`text-2xl p-2 rounded-lg transition-colors ${
+                        form.icon === icon ? "bg-primary text-primary-foreground" : "bg-muted hover:bg-muted/80"
+                      }`}
+                      onClick={() => update("icon", icon)}
+                    >
+                      {icon}
+                    </button>
+                  ))}
+                </div>
+              )}
               <div>
                 <Label>Категория</Label>
                 <Select value={form.category_id} onValueChange={(v) => update("category_id", v)}>

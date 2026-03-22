@@ -23,7 +23,6 @@ const Dashboard = () => {
   const totalValue = items?.reduce((sum, item) => sum + (item.price ?? 0), 0) ?? 0;
   const addedThisMonth = items?.filter(i => new Date(i.created_at) >= thisMonth).length ?? 0;
 
-  // 3 levels: 1 week, 1 month, 3 months
   const expiringItems = items?.filter(i => {
     if (!i.warranty_expires) return false;
     const days = differenceInDays(new Date(i.warranty_expires), now);
@@ -40,29 +39,26 @@ const Dashboard = () => {
   };
 
   const stats = [
-    { label: "Всего вещей", value: totalItems, icon: Package, color: "text-primary" },
-    { label: "Общая стоимость", value: `${totalValue.toLocaleString("uk")} ₴`, icon: DollarSign, color: "text-success" },
-    { label: "Срок годности ⚠️", value: expiringItems.length, icon: Clock, color: "text-warning" },
-    { label: "Добавлено в этом месяце", value: addedThisMonth, icon: CalendarPlus, color: "text-accent" },
+    { label: "Всего вещей", value: totalItems, icon: Package, color: "text-primary", onClick: () => navigate("/items") },
+    { label: "Общая стоимость", value: `${totalValue.toLocaleString("uk")} ₴`, icon: DollarSign, color: "text-success", onClick: () => navigate("/finance") },
+    { label: "Срок годности ⚠️", value: expiringItems.length, icon: Clock, color: "text-warning", onClick: () => navigate("/expiry") },
+    { label: "В этом месяце", value: addedThisMonth, icon: CalendarPlus, color: "text-accent", onClick: undefined },
   ];
 
   return (
     <AppLayout>
-      {/* Search */}
       <div className="relative mb-6">
         <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-        <Input
-          placeholder="Поиск по всем вещам..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-11 h-12 text-base bg-card"
-        />
+        <Input placeholder="Поиск по всем вещам..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-11 h-12 text-base bg-card" />
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
         {stats.map((stat) => (
-          <Card key={stat.label} className="animate-fade-in">
+          <Card
+            key={stat.label}
+            className={`animate-fade-in ${stat.onClick ? "cursor-pointer hover:shadow-md transition-shadow" : ""}`}
+            onClick={stat.onClick}
+          >
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-2">
                 <stat.icon className={`h-5 w-5 ${stat.color}`} />
@@ -78,24 +74,17 @@ const Dashboard = () => {
         ))}
       </div>
 
-      {/* Expiring soon */}
       {expiringItems.length > 0 && (
         <section className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-foreground">⏰ Срок годности заканчивается</h2>
-            <Button variant="ghost" size="sm" onClick={() => navigate("/expiry")}>
-              Все →
-            </Button>
+            <Button variant="ghost" size="sm" onClick={() => navigate("/expiry")}>Все →</Button>
           </div>
-          <div className="flex gap-3 overflow-x-auto scroll-snap-x pb-2">
+          <div className="flex gap-3 overflow-x-auto pb-2">
             {expiringItems.map((item) => {
               const badge = getExpiryBadge(item.warranty_expires!);
               return (
-                <Card
-                  key={item.id}
-                  className="min-w-[200px] cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => navigate(`/items/${item.id}`)}
-                >
+                <Card key={item.id} className="min-w-[200px] cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate(`/items/${item.id}`)}>
                   <CardContent className="p-4">
                     <div className="w-full h-24 bg-muted rounded-lg flex items-center justify-center mb-3">
                       {item.photo_url ? (
@@ -119,19 +108,14 @@ const Dashboard = () => {
         </section>
       )}
 
-      {/* Recently Added */}
       <section className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-foreground">📦 Недавно добавленные</h2>
-          <Button variant="ghost" size="sm" onClick={() => navigate("/items")}>
-            Все →
-          </Button>
+          <Button variant="ghost" size="sm" onClick={() => navigate("/items")}>Все →</Button>
         </div>
         {isLoading ? (
           <div className="grid grid-cols-2 gap-3">
-            {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="h-40 rounded-lg" />
-            ))}
+            {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-40 rounded-lg" />)}
           </div>
         ) : recentItems.length > 0 ? (
           <div className="grid grid-cols-2 gap-3">
@@ -140,11 +124,7 @@ const Dashboard = () => {
                 ? getLocationPath(item.location_id, locations).map(l => `${l.icon ?? "📍"} ${l.name}`).join(" → ")
                 : null;
               return (
-                <Card
-                  key={item.id}
-                  className="cursor-pointer hover:shadow-md transition-shadow animate-fade-in"
-                  onClick={() => navigate(`/items/${item.id}`)}
-                >
+                <Card key={item.id} className="cursor-pointer hover:shadow-md transition-shadow animate-fade-in" onClick={() => navigate(`/items/${item.id}`)}>
                   <CardContent className="p-3">
                     <div className="w-full h-24 bg-muted rounded-lg flex items-center justify-center mb-2">
                       {item.photo_url ? (
@@ -158,9 +138,7 @@ const Dashboard = () => {
                       <p className="text-xs text-muted-foreground truncate">{locationBreadcrumb}</p>
                     )}
                     {item.price && (
-                      <p className="text-sm font-semibold text-foreground mt-1">
-                        {item.price.toLocaleString("uk")} {getCurrencySymbol(item.currency)}
-                      </p>
+                      <p className="text-sm font-semibold text-foreground mt-1">{item.price.toLocaleString("uk")} {getCurrencySymbol(item.currency)}</p>
                     )}
                   </CardContent>
                 </Card>
@@ -180,7 +158,6 @@ const Dashboard = () => {
         )}
       </section>
 
-      {/* FAB */}
       <Button
         onClick={() => navigate("/items/new")}
         className="fixed bottom-24 md:bottom-6 right-6 h-14 w-14 rounded-full shadow-lg bg-accent text-accent-foreground hover:bg-accent/90 z-40"

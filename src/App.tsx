@@ -12,6 +12,7 @@ import Locations from "./pages/Locations";
 import Categories from "./pages/Categories";
 import ExpiryPage from "./pages/Warranties";
 import Statistics from "./pages/Statistics";
+import Finance from "./pages/Finance";
 import SettingsPage from "./pages/Settings";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/expiry" element={<ExpiryPage />} />
             <Route path="/warranties" element={<ExpiryPage />} />
             <Route path="/statistics" element={<Statistics />} />
+            <Route path="/finance" element={<Finance />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

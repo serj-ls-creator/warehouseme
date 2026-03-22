@@ -67,10 +67,12 @@ const ItemDetail = () => {
     : expiryDaysLeft < 30 ? "expiring"
     : "active";
 
-  // Location path
   const locationPath = item.location_id && locations
     ? getLocationPath(item.location_id, locations)
     : [];
+
+  // Check if photo_url is an emoji icon (single emoji stored as photo_url)
+  const isEmojiIcon = item.photo_url && item.photo_url.length <= 4 && /\p{Emoji}/u.test(item.photo_url);
 
   return (
     <AppLayout>
@@ -104,7 +106,9 @@ const ItemDetail = () => {
 
       {/* Photo */}
       <div className="w-full h-48 md:h-64 bg-muted rounded-xl flex items-center justify-center mb-6">
-        {item.photo_url ? (
+        {isEmojiIcon ? (
+          <span className="text-6xl">{item.photo_url}</span>
+        ) : item.photo_url ? (
           <img src={item.photo_url} alt={item.name} className="w-full h-full object-cover rounded-xl" />
         ) : (
           <span className="text-6xl">{item.categories?.icon ?? "📦"}</span>
@@ -116,7 +120,7 @@ const ItemDetail = () => {
         <h1 className="text-2xl font-bold text-foreground">{item.name}</h1>
         {item.category_id && categories && categories.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-2">
-            {getCategoryPath(item.category_id, categories).map((c, i) => (
+            {getCategoryPath(item.category_id, categories).map((c) => (
               <Badge key={c.id} variant="secondary" style={{ borderColor: c.color ?? undefined }}>
                 {c.icon} {c.name}
               </Badge>
@@ -127,16 +131,23 @@ const ItemDetail = () => {
       </div>
 
       <div className="space-y-4">
-        {/* Location with full path */}
+        {/* Location as vertical tree */}
         {locationPath.length > 0 && (
           <Card>
-            <CardContent className="p-4 flex items-center gap-3">
-              <MapPin className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-              <div className="min-w-0">
-                <p className="text-xs text-muted-foreground">Местонахождение</p>
-                <p className="font-medium text-foreground truncate">
-                  {locationPath.map(l => `${l.icon ?? "📍"} ${l.name}`).join(" → ")}
-                </p>
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <MapPin className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground mb-2">Местонахождение</p>
+                  <div className="space-y-1">
+                    {locationPath.map((l, i) => (
+                      <div key={l.id} className="flex items-center gap-1" style={{ paddingLeft: `${i * 16}px` }}>
+                        {i > 0 && <span className="text-muted-foreground text-xs">└</span>}
+                        <span className="text-sm font-medium text-foreground">{l.icon ?? "📍"} {l.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
