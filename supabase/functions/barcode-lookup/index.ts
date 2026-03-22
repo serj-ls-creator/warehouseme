@@ -19,17 +19,20 @@ serve(async (req) => {
       });
     }
 
-    // Try Open Food Facts first
-    const offRes = await fetch(`https://world.openfoodfacts.org/api/v2/product/${barcode}.json`);
+    // Try Open Food Facts — prefer Russian locale
+    const offRes = await fetch(`https://world.openfoodfacts.org/api/v2/product/${barcode}.json?lc=ru&cc=ua`);
     const offData = await offRes.json();
 
     if (offData.status === 1 && offData.product) {
       const p = offData.product;
+      // Prefer Russian name, then Ukrainian, then generic
+      const name = p.product_name_ru || p.product_name_uk || p.product_name || p.product_name_en || null;
+      const description = p.generic_name_ru || p.generic_name_uk || p.generic_name || p.categories || null;
       return new Response(JSON.stringify({
         found: true,
         source: 'openfoodfacts',
-        name: p.product_name || p.product_name_en || null,
-        description: p.generic_name || p.categories || null,
+        name,
+        description,
         brand: p.brands || null,
         image_url: p.image_url || p.image_front_url || null,
         barcode,
@@ -39,16 +42,18 @@ serve(async (req) => {
     }
 
     // Try Open Beauty Facts
-    const obfRes = await fetch(`https://world.openbeautyfacts.org/api/v2/product/${barcode}.json`);
+    const obfRes = await fetch(`https://world.openbeautyfacts.org/api/v2/product/${barcode}.json?lc=ru&cc=ua`);
     const obfData = await obfRes.json();
 
     if (obfData.status === 1 && obfData.product) {
       const p = obfData.product;
+      const name = p.product_name_ru || p.product_name_uk || p.product_name || null;
+      const description = p.generic_name_ru || p.generic_name_uk || p.generic_name || p.categories || null;
       return new Response(JSON.stringify({
         found: true,
         source: 'openbeautyfacts',
-        name: p.product_name || null,
-        description: p.generic_name || p.categories || null,
+        name,
+        description,
         brand: p.brands || null,
         image_url: p.image_url || null,
         barcode,
