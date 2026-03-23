@@ -60,19 +60,33 @@ const Finance = () => {
     return { month: format(m, "LLL", { locale: ru }), spent };
   });
 
-  // By category
+  // By category - filtered by selected period
   const categorySpending = useMemo(() => {
     if (!categories) return [];
     const rootCats = categories.filter(c => !c.parent_id);
+
+    // Filter items by selected period
+    const filteredItems = viewMode === "month"
+      ? allItems.filter(i => {
+          if (!i.purchase_date) return false;
+          const d = new Date(i.purchase_date);
+          return d >= monthStart && d <= monthEnd;
+        })
+      : allItems.filter(i => {
+          if (!i.purchase_date) return false;
+          const d = new Date(i.purchase_date);
+          return d >= yearStart && d <= now;
+        });
+
     return rootCats.map(c => {
       const childIds = categories.filter(ch => ch.parent_id === c.id).map(ch => ch.id);
       const allIds = [c.id, ...childIds];
-      const spent = allItems
+      const spent = filteredItems
         .filter(i => i.category_id && allIds.includes(i.category_id))
         .reduce((s, i) => s + (i.price ?? 0), 0);
       return { name: `${c.icon ?? "📦"} ${c.name}`, value: spent };
     }).filter(c => c.value > 0).sort((a, b) => b.value - a.value);
-  }, [allItems, categories]);
+  }, [allItems, categories, viewMode, selectedMonth]);
 
   // Recent purchases
   const recentPurchases = [...itemsWithPrice]
@@ -185,11 +199,13 @@ const Finance = () => {
         </Card>
       )}
 
-      {/* By Category */}
+      {/* By Category - filtered by period */}
       {categorySpending.length > 0 && (
         <Card className="mb-4">
           <CardHeader>
-            <CardTitle className="text-sm">Расходы по категориям</CardTitle>
+            <CardTitle className="text-sm">
+              Расходы по категориям ({viewMode === "month" ? monthOptions.find(o => o.value === selectedMonth)?.label : format(now, "yyyy")})
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>
