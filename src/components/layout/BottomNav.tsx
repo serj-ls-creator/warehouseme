@@ -4,8 +4,8 @@ import { cn } from "@/lib/utils";
 const navItems = [
   { to: "/", label: "Главная", emoji: "🏠" },
   { to: "/items", label: "Вещи", emoji: "📦" },
+  { to: "/categories", label: "Категории", emoji: "🏷️" },
   { to: "/locations", label: "Локации", emoji: "📍" },
-  { to: "/expiry", label: "Сроки", emoji: "⏰" },
   { to: "/settings", label: "Ещё", emoji: "⚙️" },
 ];
 
