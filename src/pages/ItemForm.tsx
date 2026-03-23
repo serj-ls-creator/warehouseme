@@ -16,7 +16,18 @@ import { useToast } from "@/hooks/use-toast";
 
 const steps = ["Основное", "Место", "Покупка", "Заметки"];
 
-const ICON_OPTIONS = ["📦", "💻", "📱", "🔧", "👕", "🍳", "🧸", "💊", "📚", "🎮", "🏠", "🎨", "🌱", "📄", "🏗️", "🎁", "🧴", "🏋️", "⚽", "🎸", "🔌", "🛋️", "🪑", "🛏️", "👟", "🧥", "📷", "🎧", "🪀", "🧩"];
+const ICON_OPTIONS = [
+  "📦", "💻", "📱", "🔧", "👕", "🍳", "🧸", "💊", "📚", "🎮",
+  "🏠", "🎨", "🌱", "📄", "🏗️", "🎁", "🧴", "🏋️", "⚽", "🎸",
+  "🔌", "🛋️", "🪑", "🛏️", "👟", "🧥", "📷", "🎧", "🪀", "🧩",
+  "🚗", "✈️", "🏍️", "🚲", "⌚", "💍", "👜", "🎒", "🧳", "🪞",
+  "🧲", "🔑", "🔒", "💡", "🔋", "🖨️", "🖥️", "⌨️", "🖱️", "📺",
+  "📻", "🎥", "🎤", "🎹", "🥁", "🎯", "🏓", "🎾", "🏀", "🏈",
+  "⛷️", "🏊", "🏕️", "🎣", "🔭", "🔬", "🧪", "💉", "🩺", "🩹",
+  "👓", "🧤", "🧣", "👶", "🍽️", "🥘", "🍴", "☕", "🫖", "🧹",
+  "🧼", "🪴", "🌿", "💧", "🪻", "🕯️", "🎀", "🎄", "🪪", "📋",
+  "🧾", "💰", "🛡️", "🧱", "🔩", "🚰", "🧊", "📏", "🌾", "🏺",
+];
 
 const ItemForm = () => {
   const { id } = useParams<{ id: string }>();
@@ -180,11 +191,11 @@ const ItemForm = () => {
 
       {/* Progress - fixed mobile spacing */}
       <div className="mb-6">
-        <div className="flex justify-between gap-2 text-xs text-muted-foreground mb-2">
+        <div className="flex justify-between gap-1.5 sm:gap-2 text-xs text-muted-foreground mb-2">
           {steps.map((s, i) => (
             <span
               key={s}
-              className={`text-center flex-1 px-1 py-1 rounded-md transition-colors ${
+              className={`text-center flex-1 px-1.5 py-1.5 rounded-md transition-colors whitespace-nowrap text-[10px] sm:text-xs ${
                 i === step
                   ? "bg-primary text-primary-foreground font-medium"
                   : "bg-muted"

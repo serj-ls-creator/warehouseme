@@ -40,8 +40,9 @@ const Auth = () => {
         if (error) throw error;
         toast({
           title: "Регистрация успешна",
-          description: "Проверьте почту для подтверждения аккаунта.",
+          description: "Добро пожаловать в WarehouseMe!",
         });
+        navigate("/");
       } else {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}/reset-password`,
