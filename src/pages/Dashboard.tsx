@@ -128,10 +128,10 @@ const Dashboard = () => {
                 <Card key={item.id} className="cursor-pointer hover:shadow-md transition-shadow animate-fade-in" onClick={() => navigate(`/items/${item.id}`)}>
                   <CardContent className="p-3">
                     <div className="w-full h-24 bg-muted rounded-lg flex items-center justify-center mb-2">
-                      {item.photo_url ? (
+                      {item.photo_url && !isEmoji(item.photo_url) ? (
                         <img src={item.photo_url} alt={item.name} className="w-full h-full object-cover rounded-lg" />
                       ) : (
-                        <span className="text-3xl">{item.categories?.icon ?? "📦"}</span>
+                        <span className="text-3xl">{isEmoji(item.photo_url) ? item.photo_url : (item.categories?.icon ?? "📦")}</span>
                       )}
                     </div>
                     <p className="font-medium text-sm text-foreground truncate">{item.name}</p>

@@ -44,10 +44,10 @@ const ExpiryPage = () => {
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
             <div className="w-14 h-14 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
-              {item.photo_url ? (
+              {item.photo_url && !isEmoji(item.photo_url) ? (
                 <img src={item.photo_url} alt={item.name} className="w-full h-full object-cover rounded-lg" />
               ) : (
-                <span className="text-xl">{item.categories?.icon ?? "📦"}</span>
+                <span className="text-xl">{isEmoji(item.photo_url) ? item.photo_url : (item.categories?.icon ?? "📦")}</span>
               )}
             </div>
             <div className="flex-1 min-w-0">
