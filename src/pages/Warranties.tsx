@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Clock, AlertTriangle } from "lucide-react";
 import { differenceInDays, format } from "date-fns";
+import { isEmoji } from "@/lib/isEmoji";
 
 const ExpiryPage = () => {
   const { data: items, isLoading } = useItems();
