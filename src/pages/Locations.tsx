@@ -16,7 +16,14 @@ import { Plus, ChevronRight, ChevronDown, Trash2, MapPin, Edit } from "lucide-re
 import { useNavigate } from "react-router-dom";
 import type { Location } from "@/hooks/useData";
 
-const defaultLocationEmojis = ["🏠", "🛋️", "🍳", "🛏️", "🚿", "🏪", "📦", "🗄️", "🚗", "🏢", "🌳", "🏗️", "🛒", "🎒"];
+const defaultLocationEmojis = [
+  "🏠", "🛋️", "🍳", "🛏️", "🚿", "🏪", "📦", "🗄️", "🚗", "🏢", "🌳", "🏗️", "🛒", "🎒",
+  "🏡", "🏘️", "🏚️", "🏛️", "🏗️", "🏭", "🏬", "🏣", "🏤", "🏥", "🏦", "🏨", "🏩", "🏪",
+  "🧳", "🛗", "🚪", "🪟", "🛖", "⛺", "🏕️", "🌆", "🌇", "🌃", "🌉", "🗼", "🗽", "⛪",
+  "🕌", "🛕", "🏰", "🏯", "🎪", "🗺️", "🧭", "⛲", "🎡", "🎢", "🎠", "🅿️", "🚏", "🛤️",
+  "🛣️", "🏞️", "🏔️", "⛰️", "🌋", "🗻", "🏝️", "🏖️", "🌊", "🚂", "✈️", "🚀", "🛸", "🚁",
+  "🔧", "🔨", "🪛", "🪚", "📐", "📏", "🧰", "🗑️", "🪣", "🧊", "📮", "📬", "📫", "📪",
+];
 
 const LocationTree = ({ locations, parentId, items, onDelete, onEdit, navigate, level = 0 }: {
   locations: Location[];
