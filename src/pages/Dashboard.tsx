@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Search, Plus, Package, DollarSign, Clock, CalendarPlus } from "lucide-react";
+import { isEmoji } from "@/lib/isEmoji";
 import { differenceInDays, startOfMonth } from "date-fns";
 
 const Dashboard = () => {
