@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useItem, useCreateItem, useUpdateItem, useCategories, useLocations, useCreateCategory, useCreateLocation, useBarcodeLookup } from "@/hooks/useData";
+import { supabase } from "@/integrations/supabase/client";
 import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,8 +12,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, ArrowRight, Check, Search, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Search, Loader2, Camera, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { isEmoji } from "@/lib/isEmoji";
 
 const steps = ["Основное", "Место", "Покупка", "Заметки"];
 
@@ -64,9 +66,14 @@ const ItemForm = () => {
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newLocationName, setNewLocationName] = useState("");
   const [useIcon, setUseIcon] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (existingItem && isEdit) {
+      const existingIsEmoji = isEmoji(existingItem.photo_url);
       setForm({
         name: existingItem.name,
         description: existingItem.description ?? "",
@@ -80,8 +87,13 @@ const ItemForm = () => {
         serial_number: existingItem.serial_number ?? "",
         barcode: existingItem.barcode ?? "",
         notes: existingItem.notes ?? "",
-        icon: "",
+        icon: existingIsEmoji ? existingItem.photo_url! : "",
       });
+      if (existingIsEmoji) {
+        setUseIcon(true);
+      } else if (existingItem.photo_url) {
+        setPhotoPreview(existingItem.photo_url);
+      }
     }
   }, [existingItem, isEdit]);
 
@@ -119,14 +131,62 @@ const ItemForm = () => {
     setNewLocationName("");
   };
 
+  const uploadPhoto = async (): Promise<string | null> => {
+    if (!photoFile || !user) return null;
+    setUploading(true);
+    try {
+      const ext = photoFile.name.split(".").pop() || "jpg";
+      const filePath = `${user.id}/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("item-photos").upload(filePath, photoFile, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from("item-photos").getPublicUrl(filePath);
+      return urlData.publicUrl;
+    } catch (err: any) {
+      toast({ title: "Ошибка загрузки фото", description: err.message, variant: "destructive" });
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "Файл слишком большой", description: "Максимум 5 МБ", variant: "destructive" });
+      return;
+    }
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+    setUseIcon(false);
+  };
+
+  const removePhoto = () => {
+    setPhotoFile(null);
+    setPhotoPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
   const handleSubmit = async () => {
     if (!user || !form.name.trim()) return;
+
+    let photoUrl: string | null = null;
+    if (useIcon && form.icon) {
+      photoUrl = form.icon;
+    } else if (photoFile) {
+      photoUrl = await uploadPhoto();
+    } else if (photoPreview) {
+      photoUrl = photoPreview;
+    }
 
     const data = {
       user_id: user.id,
       name: form.name.trim(),
       description: form.description || null,
-      photo_url: useIcon && form.icon ? form.icon : null,
+      photo_url: photoUrl,
       category_id: form.category_id || null,
       location_id: form.location_id || null,
       purchase_date: form.purchase_date || null,
@@ -241,9 +301,51 @@ const ItemForm = () => {
                 <Label>Описание</Label>
                 <Textarea value={form.description} onChange={(e) => update("description", e.target.value)} placeholder="Описание вещи" className="mt-1" rows={3} />
               </div>
+
+              {/* Photo upload */}
+              <div>
+                <Label className="mb-2 block">Фото товара</Label>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                {photoPreview && !useIcon ? (
+                  <div className="relative w-full h-40 bg-muted rounded-lg overflow-hidden mb-2">
+                    <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-2 right-2 h-7 w-7"
+                      onClick={removePhoto}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : !useIcon ? (
+                  <div
+                    className="w-full h-32 border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary/50 transition-colors mb-2"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Camera className="h-8 w-8 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">Нажмите для загрузки фото</p>
+                    <p className="text-xs text-muted-foreground">Макс. 5 МБ</p>
+                  </div>
+                ) : null}
+              </div>
+
               {/* Icon instead of photo */}
               <div className="flex items-center gap-3">
-                <Switch checked={useIcon} onCheckedChange={setUseIcon} />
+                <Switch
+                  checked={useIcon}
+                  onCheckedChange={(v) => {
+                    setUseIcon(v);
+                    if (v) removePhoto();
+                  }}
+                />
                 <Label>Использовать иконку вместо фото</Label>
               </div>
               {useIcon && (
@@ -262,6 +364,7 @@ const ItemForm = () => {
                   ))}
                 </div>
               )}
+
               <div>
                 <Label>Категория</Label>
                 <Select value={form.category_id} onValueChange={(v) => update("category_id", v)}>
@@ -375,8 +478,9 @@ const ItemForm = () => {
             Далее <ArrowRight className="h-4 w-4 ml-1" />
           </Button>
         ) : (
-          <Button onClick={handleSubmit} disabled={!form.name.trim() || createItem.isPending || updateItem.isPending}>
-            <Check className="h-4 w-4 mr-1" /> Сохранить
+          <Button onClick={handleSubmit} disabled={!form.name.trim() || createItem.isPending || updateItem.isPending || uploading}>
+            {uploading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Check className="h-4 w-4 mr-1" />}
+            {uploading ? "Загрузка..." : "Сохранить"}
           </Button>
         )}
       </div>
