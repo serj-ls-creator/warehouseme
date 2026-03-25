@@ -19,7 +19,15 @@ import {
 import { Plus, Trash2, Tags, Edit, ChevronRight, ChevronDown, Loader2, Download } from "lucide-react";
 import type { Category } from "@/hooks/useData";
 
-const defaultEmojis = ["💻", "🔧", "👕", "📚", "🧸", "🏠", "🍳", "💊", "📄", "🎮", "📦", "🎧", "🚗", "⚽", "🎨", "🧴", "🌱", "🏗️", "🎁", "🏋️"];
+const defaultEmojis = [
+  "💻", "🔧", "👕", "📚", "🧸", "🏠", "🍳", "💊", "📄", "🎮", "📦", "🎧", "🚗", "⚽", "🎨", "🧴", "🌱", "🏗️", "🎁", "🏋️",
+  "📱", "🖥️", "📺", "🔌", "📷", "🎤", "🎹", "🥁", "🎯", "🏓", "🎾", "🏀", "⛷️", "🏊", "🏕️", "🎣",
+  "🔨", "🪛", "🪚", "📐", "📏", "🧰", "🛋️", "🪑", "🛏️", "🗄️", "🍽️", "🥘", "🍴", "☕",
+  "🧥", "👟", "👶", "🧩", "🪀", "🎒", "🧳", "⌚", "💍", "👜", "🪞",
+  "🔬", "🔭", "🧪", "💉", "🩺", "🩹", "👓", "🕯️", "🎀", "🎄", "🪪", "📋", "🧾", "💰", "🛡️",
+  "🧱", "🔩", "🚰", "🧊", "🌾", "🏺", "🪴", "🌿", "💧", "🪻", "🧹", "🧼",
+  "🔑", "🔒", "💡", "🔋", "🖨️", "⌨️", "🖱️", "📻", "🎥",
+];
 
 const CategoryTree = ({ categories, parentId, items, onDelete, onEdit, onAddSub, navigate, level = 0 }: {
   categories: Category[];
