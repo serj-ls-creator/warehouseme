@@ -20,6 +20,7 @@ import {
 import { Plus, Trash2, Tags, Edit, ChevronRight, ChevronDown, Loader2, Download } from "lucide-react";
 import type { Category } from "@/hooks/useData";
 import IconSelect from "@/components/IconSelect";
+import { useI18n } from "@/hooks/usePreferences";
 
 const defaultEmojis = [
   "💻", "🔧", "👕", "📚", "🧸", "🏠", "🍳", "💊", "📄", "🎮", "📦", "🎧", "🚗", "⚽", "🎨", "🧴", "🌱", "🏗️", "🎁", "🏋️",
@@ -31,7 +32,7 @@ const defaultEmojis = [
   "🔑", "🔒", "💡", "🔋", "🖨️", "⌨️", "🖱️", "📻", "🎥",
 ];
 
-const CategoryTree = ({ categories, parentId, items, onDelete, onEdit, onAddSub, navigate, level = 0 }: {
+const CategoryTree = ({ categories, parentId, items, onDelete, onEdit, onAddSub, navigate, level = 0, t }: {
   categories: Category[];
   parentId: string | null;
   items: any[];
@@ -40,6 +41,7 @@ const CategoryTree = ({ categories, parentId, items, onDelete, onEdit, onAddSub,
   onAddSub: (parentId: string) => void;
   navigate: any;
   level?: number;
+  t: (key: string) => string;
 }) => {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const children = categories.filter(c => c.parent_id === parentId);
@@ -70,7 +72,7 @@ const CategoryTree = ({ categories, parentId, items, onDelete, onEdit, onAddSub,
                   {cat.name}
                 </button>
                 <Badge variant="secondary" className="text-xs flex-shrink-0">{count}</Badge>
-                <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground flex-shrink-0" onClick={() => onAddSub(cat.id)} title="Добавить подкатегорию">
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground flex-shrink-0" onClick={() => onAddSub(cat.id)} title={t("categories.addSubcategory")}>
                   <Plus className="h-3 w-3" />
                 </Button>
                 <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground flex-shrink-0" onClick={() => onEdit(cat)}>
@@ -84,19 +86,19 @@ const CategoryTree = ({ categories, parentId, items, onDelete, onEdit, onAddSub,
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Удалить категорию?</AlertDialogTitle>
-                      <AlertDialogDescription>Подкатегории тоже будут удалены. Вещи останутся без категории.</AlertDialogDescription>
+                       <AlertDialogTitle>{t("categories.deleteTitle")}</AlertDialogTitle>
+                       <AlertDialogDescription>{t("categories.deleteDescription")}</AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Отмена</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => onDelete(cat.id)}>Удалить</AlertDialogAction>
+                       <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+                       <AlertDialogAction onClick={() => onDelete(cat.id)}>{t("common.delete")}</AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
               </CardContent>
             </Card>
             {isExpanded && hasChildren && (
-              <CategoryTree categories={categories} parentId={cat.id} items={items} onDelete={onDelete} onEdit={onEdit} onAddSub={onAddSub} navigate={navigate} level={level + 1} />
+               <CategoryTree categories={categories} parentId={cat.id} items={items} onDelete={onDelete} onEdit={onEdit} onAddSub={onAddSub} navigate={navigate} level={level + 1} t={t} />
             )}
           </div>
         );
@@ -115,6 +117,7 @@ const Categories = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useI18n();
   const [seeding, setSeeding] = useState(false);
 
   const [newName, setNewName] = useState("");
@@ -142,7 +145,7 @@ const Categories = () => {
   const handleAddSub = (parentId: string) => {
     setNewParentId(parentId);
     setNewName("");
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleEdit = (cat: Category) => {
@@ -177,7 +180,7 @@ const Categories = () => {
 
   return (
     <AppLayout>
-      <h1 className="text-2xl font-bold text-foreground mb-6">🏷️ Категории</h1>
+      <h1 className="text-2xl font-bold text-foreground mb-6">🏷️ {t("categories.title")}</h1>
 
       {/* Add form */}
       <Card className="mb-6">
@@ -185,17 +188,17 @@ const Categories = () => {
           <div className="flex flex-col gap-3">
             <div className="flex gap-2">
               <IconSelect icons={defaultEmojis} value={newIcon} onValueChange={setNewIcon} className="w-24 flex-shrink-0" />
-              <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Название категории" className="flex-1 min-w-0" />
+               <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder={t("categories.namePlaceholder")} className="flex-1 min-w-0" />
               <Button onClick={handleAdd} disabled={!newName.trim()} className="flex-shrink-0">
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
             <Select value={newParentId || "root"} onValueChange={(value) => setNewParentId(value === "root" ? "" : value)}>
               <SelectTrigger>
-                <SelectValue placeholder="Корневая категория" />
+                <SelectValue placeholder={t("common.rootCategory")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="root">Корневая категория</SelectItem>
+                <SelectItem value="root">{t("common.rootCategory")}</SelectItem>
                 {getParentOptions().map((c) => (
                   <SelectItem key={c.id} value={c.id}>{c.label}</SelectItem>
                 ))}
@@ -218,12 +221,13 @@ const Categories = () => {
           onEdit={handleEdit}
           onAddSub={handleAddSub}
           navigate={navigate}
+          t={t}
         />
       ) : (
         <Card>
           <CardContent className="p-8 text-center">
             <Tags className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-            <p className="text-muted-foreground mb-4">Добавьте первую категорию</p>
+            <p className="text-muted-foreground mb-4">{t("categories.addFirst")}</p>
             <Button
               variant="outline"
               onClick={async () => {
@@ -231,16 +235,16 @@ const Categories = () => {
                 try {
                   await supabase.functions.invoke('seed-categories');
                   queryClient.invalidateQueries({ queryKey: ["categories"] });
-                  toast({ title: "Категории добавлены!" });
+                  toast({ title: t("categories.seeded") });
                 } catch {
-                  toast({ title: "Ошибка", variant: "destructive" });
+                  toast({ title: t("common.error"), variant: "destructive" });
                 }
                 setSeeding(false);
               }}
               disabled={seeding}
             >
               {seeding ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Download className="h-4 w-4 mr-2" />}
-              Загрузить стандартные категории
+               {t("categories.loadStandard")}
             </Button>
           </CardContent>
         </Card>
@@ -250,15 +254,15 @@ const Categories = () => {
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Редактировать категорию</DialogTitle>
+            <DialogTitle>{t("categories.editTitle")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="flex gap-2">
               <IconSelect icons={defaultEmojis} value={editIcon} onValueChange={setEditIcon} className="w-24 flex-shrink-0" />
-              <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Название" className="flex-1" />
+               <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder={t("categories.name")} className="flex-1" />
             </div>
             <Button onClick={handleSaveEdit} disabled={!editName.trim()} className="w-full">
-              Сохранить
+              {t("common.save")}
             </Button>
           </div>
         </DialogContent>

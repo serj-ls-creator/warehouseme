@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useI18n } from "@/hooks/usePreferences";
 
 export interface Item {
   id: string;
@@ -126,6 +127,7 @@ export const useItem = (id: string) => {
 export const useCreateItem = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useI18n();
 
   return useMutation({
     mutationFn: async (item: Omit<Item, "id" | "created_at" | "updated_at" | "categories" | "locations">) => {
@@ -135,10 +137,10 @@ export const useCreateItem = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["items"] });
-      toast({ title: "Вещь добавлена" });
+      toast({ title: t("toasts.itemAdded") });
     },
     onError: (e: Error) => {
-      toast({ title: "Ошибка", description: e.message, variant: "destructive" });
+      toast({ title: t("common.error"), description: e.message, variant: "destructive" });
     },
   });
 };
@@ -146,6 +148,7 @@ export const useCreateItem = () => {
 export const useUpdateItem = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useI18n();
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Item> & { id: string }) => {
@@ -157,10 +160,10 @@ export const useUpdateItem = () => {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["items"] });
       queryClient.invalidateQueries({ queryKey: ["item", data.id] });
-      toast({ title: "Вещь обновлена" });
+      toast({ title: t("toasts.itemUpdated") });
     },
     onError: (e: Error) => {
-      toast({ title: "Ошибка", description: e.message, variant: "destructive" });
+      toast({ title: t("common.error"), description: e.message, variant: "destructive" });
     },
   });
 };
@@ -168,6 +171,7 @@ export const useUpdateItem = () => {
 export const useDeleteItem = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useI18n();
 
   return useMutation({
     mutationFn: async (id: string) => {
@@ -176,10 +180,10 @@ export const useDeleteItem = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["items"] });
-      toast({ title: "Вещь удалена" });
+      toast({ title: t("toasts.itemDeleted") });
     },
     onError: (e: Error) => {
-      toast({ title: "Ошибка", description: e.message, variant: "destructive" });
+      toast({ title: t("common.error"), description: e.message, variant: "destructive" });
     },
   });
 };
@@ -198,6 +202,7 @@ export const useCategories = () => {
 export const useCreateCategory = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useI18n();
 
   return useMutation({
     mutationFn: async (cat: Omit<Category, "id" | "created_at">) => {
@@ -207,10 +212,10 @@ export const useCreateCategory = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
-      toast({ title: "Категория создана" });
+      toast({ title: t("toasts.categoryCreated") });
     },
     onError: (e: Error) => {
-      toast({ title: "Ошибка", description: e.message, variant: "destructive" });
+      toast({ title: t("common.error"), description: e.message, variant: "destructive" });
     },
   });
 };
@@ -218,6 +223,7 @@ export const useCreateCategory = () => {
 export const useUpdateCategory = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useI18n();
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Category> & { id: string }) => {
@@ -228,10 +234,10 @@ export const useUpdateCategory = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
       queryClient.invalidateQueries({ queryKey: ["items"] });
-      toast({ title: "Категория обновлена" });
+      toast({ title: t("toasts.categoryUpdated") });
     },
     onError: (e: Error) => {
-      toast({ title: "Ошибка", description: e.message, variant: "destructive" });
+      toast({ title: t("common.error"), description: e.message, variant: "destructive" });
     },
   });
 };
@@ -239,6 +245,7 @@ export const useUpdateCategory = () => {
 export const useDeleteCategory = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useI18n();
 
   return useMutation({
     mutationFn: async (id: string) => {
@@ -247,7 +254,7 @@ export const useDeleteCategory = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
-      toast({ title: "Категория удалена" });
+      toast({ title: t("toasts.categoryDeleted") });
     },
   });
 };
@@ -266,6 +273,7 @@ export const useLocations = () => {
 export const useCreateLocation = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useI18n();
 
   return useMutation({
     mutationFn: async (loc: Omit<Location, "id" | "created_at">) => {
@@ -275,10 +283,10 @@ export const useCreateLocation = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["locations"] });
-      toast({ title: "Локация создана" });
+      toast({ title: t("toasts.locationCreated") });
     },
     onError: (e: Error) => {
-      toast({ title: "Ошибка", description: e.message, variant: "destructive" });
+      toast({ title: t("common.error"), description: e.message, variant: "destructive" });
     },
   });
 };
@@ -286,6 +294,7 @@ export const useCreateLocation = () => {
 export const useUpdateLocation = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useI18n();
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Location> & { id: string }) => {
@@ -296,10 +305,10 @@ export const useUpdateLocation = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["locations"] });
       queryClient.invalidateQueries({ queryKey: ["items"] });
-      toast({ title: "Локация обновлена" });
+      toast({ title: t("toasts.locationUpdated") });
     },
     onError: (e: Error) => {
-      toast({ title: "Ошибка", description: e.message, variant: "destructive" });
+      toast({ title: t("common.error"), description: e.message, variant: "destructive" });
     },
   });
 };
@@ -307,6 +316,7 @@ export const useUpdateLocation = () => {
 export const useDeleteLocation = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useI18n();
 
   return useMutation({
     mutationFn: async (id: string) => {
@@ -315,7 +325,7 @@ export const useDeleteLocation = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["locations"] });
-      toast({ title: "Локация удалена" });
+      toast({ title: t("toasts.locationDeleted") });
     },
   });
 };
@@ -323,6 +333,7 @@ export const useDeleteLocation = () => {
 // Barcode lookup
 export const useBarcodeLookup = () => {
   const { toast } = useToast();
+  const { t } = useI18n();
 
   return useMutation({
     mutationFn: async (barcode: string) => {
@@ -340,7 +351,7 @@ export const useBarcodeLookup = () => {
       };
     },
     onError: (e: Error) => {
-      toast({ title: "Ошибка поиска", description: e.message, variant: "destructive" });
+      toast({ title: t("toasts.lookupError"), description: e.message, variant: "destructive" });
     },
   });
 };

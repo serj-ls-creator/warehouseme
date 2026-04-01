@@ -17,6 +17,7 @@ import { Plus, ChevronRight, ChevronDown, Trash2, MapPin, Edit } from "lucide-re
 import { useNavigate } from "react-router-dom";
 import type { Location } from "@/hooks/useData";
 import IconSelect from "@/components/IconSelect";
+import { useI18n } from "@/hooks/usePreferences";
 
 const defaultLocationEmojis = [
   "🏠", "🛋️", "🍳", "🛏️", "🚿", "🏪", "📦", "🗄️", "🚗", "🏢", "🌳", "🏗️", "🛒", "🎒",
@@ -27,7 +28,7 @@ const defaultLocationEmojis = [
   "🔧", "🔨", "🪛", "🪚", "📐", "📏", "🧰", "🗑️", "🪣", "🧊", "📮", "📬", "📫", "📪",
 ];
 
-const LocationTree = ({ locations, parentId, items, onDelete, onEdit, navigate, level = 0 }: {
+const LocationTree = ({ locations, parentId, items, onDelete, onEdit, navigate, level = 0, t }: {
   locations: Location[];
   parentId: string | null;
   items: any[];
@@ -35,6 +36,7 @@ const LocationTree = ({ locations, parentId, items, onDelete, onEdit, navigate, 
   onEdit: (loc: Location) => void;
   navigate: any;
   level?: number;
+  t: (key: string) => string;
 }) => {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const children = locations.filter(l => l.parent_id === parentId);
@@ -76,19 +78,19 @@ const LocationTree = ({ locations, parentId, items, onDelete, onEdit, navigate, 
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Удалить локацию?</AlertDialogTitle>
-                      <AlertDialogDescription>Все подлокации тоже будут удалены.</AlertDialogDescription>
+                       <AlertDialogTitle>{t("locations.deleteTitle")}</AlertDialogTitle>
+                       <AlertDialogDescription>{t("locations.deleteDescription")}</AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Отмена</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => onDelete(loc.id)}>Удалить</AlertDialogAction>
+                       <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+                       <AlertDialogAction onClick={() => onDelete(loc.id)}>{t("common.delete")}</AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
               </CardContent>
             </Card>
             {isExpanded && hasChildren && (
-              <LocationTree locations={locations} parentId={loc.id} items={items} onDelete={onDelete} onEdit={onEdit} navigate={navigate} level={level + 1} />
+               <LocationTree locations={locations} parentId={loc.id} items={items} onDelete={onDelete} onEdit={onEdit} navigate={navigate} level={level + 1} t={t} />
             )}
           </div>
         );
@@ -105,6 +107,7 @@ const Locations = () => {
   const deleteLocation = useDeleteLocation();
   const updateLocation = useUpdateLocation();
   const navigate = useNavigate();
+  const { t } = useI18n();
 
   const [newName, setNewName] = useState("");
   const [newIcon, setNewIcon] = useState("📍");
@@ -160,7 +163,7 @@ const Locations = () => {
 
   return (
     <AppLayout>
-      <h1 className="text-2xl font-bold text-foreground mb-6">📍 Локации</h1>
+      <h1 className="text-2xl font-bold text-foreground mb-6">📍 {t("locations.title")}</h1>
 
       {/* Add form */}
       <Card className="mb-6">
@@ -168,17 +171,17 @@ const Locations = () => {
           <div className="flex flex-col gap-3">
             <div className="flex gap-2">
               <IconSelect icons={defaultLocationEmojis} value={newIcon} onValueChange={setNewIcon} className="w-24 flex-shrink-0" />
-              <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Название локации" className="flex-1 min-w-0" />
+               <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder={t("locations.namePlaceholder")} className="flex-1 min-w-0" />
               <Button onClick={handleAdd} disabled={!newName.trim()} className="flex-shrink-0">
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
             <Select value={parentId || "root"} onValueChange={(value) => setParentId(value === "root" ? "" : value)}>
               <SelectTrigger>
-                <SelectValue placeholder="Корневая локация" />
+                <SelectValue placeholder={t("common.rootLocation")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="root">Корневая локация</SelectItem>
+                <SelectItem value="root">{t("common.rootLocation")}</SelectItem>
                 {getParentOptions().map((l) => (
                   <SelectItem key={l.id} value={l.id}>{l.label}</SelectItem>
                 ))}
@@ -200,12 +203,13 @@ const Locations = () => {
           onDelete={(id) => deleteLocation.mutate(id)}
           onEdit={handleEdit}
           navigate={navigate}
+          t={t}
         />
       ) : (
         <Card>
           <CardContent className="p-8 text-center">
             <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-            <p className="text-muted-foreground">Добавьте первую локацию</p>
+            <p className="text-muted-foreground">{t("locations.addFirst")}</p>
           </CardContent>
         </Card>
       )}
@@ -214,15 +218,15 @@ const Locations = () => {
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Редактировать локацию</DialogTitle>
+            <DialogTitle>{t("locations.editTitle")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="flex gap-2">
               <IconSelect icons={defaultLocationEmojis} value={editIcon} onValueChange={setEditIcon} className="w-24 flex-shrink-0" />
-              <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Название" className="flex-1" />
+               <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder={t("locations.namePlaceholder")} className="flex-1" />
             </div>
             <Button onClick={handleSaveEdit} disabled={!editName.trim()} className="w-full">
-              Сохранить
+              {t("common.save")}
             </Button>
           </div>
         </DialogContent>

@@ -1,17 +1,19 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-
-const navItems = [
-  { to: "/", label: "Главная", emoji: "🏠" },
-  { to: "/items", label: "Вещи", emoji: "📦" },
-  { to: "/locations", label: "Локации", emoji: "📍" },
-  { to: "/categories", label: "Категории", emoji: "🏷️" },
-  { to: "/expiry", label: "Сроки", emoji: "⏰" },
-  { to: "/settings", label: "Ещё", emoji: "⚙️" },
-];
+import { useI18n } from "@/hooks/usePreferences";
 
 export const BottomNav = () => {
   const location = useLocation();
+  const { t } = useI18n();
+
+  const navItems = [
+    { to: "/", label: t("nav.home"), emoji: "🏠" },
+    { to: "/items", label: t("nav.items"), emoji: "📦" },
+    { to: "/locations", label: t("nav.locations"), emoji: "📍" },
+    { to: "/categories", label: t("nav.categories"), emoji: "🏷️" },
+    { to: "/expiry", label: t("nav.expiry"), emoji: "⏰" },
+    { to: "/settings", label: t("nav.more"), emoji: "⚙️" },
+  ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-50">
