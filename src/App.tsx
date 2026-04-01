@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
+import { PreferencesProvider } from "@/hooks/usePreferences";
 import Dashboard from "./pages/Dashboard";
 import Items from "./pages/Items";
 import ItemDetail from "./pages/ItemDetail";
@@ -21,30 +22,32 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/items" element={<Items />} />
-            <Route path="/items/new" element={<ItemForm />} />
-            <Route path="/items/:id" element={<ItemDetail />} />
-            <Route path="/items/:id/edit" element={<ItemForm />} />
-            <Route path="/locations" element={<Locations />} />
-            <Route path="/categories" element={<Categories />} />
-            <Route path="/expiry" element={<ExpiryPage />} />
-            <Route path="/warranties" element={<ExpiryPage />} />
-            <Route path="/statistics" element={<Statistics />} />
-            <Route path="/finance" element={<Finance />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
+    <PreferencesProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/items" element={<Items />} />
+              <Route path="/items/new" element={<ItemForm />} />
+              <Route path="/items/:id" element={<ItemDetail />} />
+              <Route path="/items/:id/edit" element={<ItemForm />} />
+              <Route path="/locations" element={<Locations />} />
+              <Route path="/categories" element={<Categories />} />
+              <Route path="/expiry" element={<ExpiryPage />} />
+              <Route path="/warranties" element={<ExpiryPage />} />
+              <Route path="/statistics" element={<Statistics />} />
+              <Route path="/finance" element={<Finance />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </PreferencesProvider>
   </QueryClientProvider>
 );
 

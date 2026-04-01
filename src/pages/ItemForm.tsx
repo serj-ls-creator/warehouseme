@@ -14,7 +14,9 @@ import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight, Check, Search, Loader2, Camera, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { usePreferences } from "@/hooks/usePreferences";
 import { isEmoji } from "@/lib/isEmoji";
+import IconSelect from "@/components/IconSelect";
 
 const steps = ["Основное", "Место", "Покупка", "Заметки"];
 
@@ -36,6 +38,7 @@ const ItemForm = () => {
   const isEdit = !!id && id !== "new";
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { currency: defaultCurrency } = usePreferences();
   const { toast } = useToast();
   const { data: existingItem } = useItem(isEdit ? id : "");
   const { data: categories } = useCategories();
@@ -54,7 +57,7 @@ const ItemForm = () => {
     location_id: "",
     purchase_date: "",
     price: "",
-    currency: "UAH",
+    currency: defaultCurrency,
     hasExpiry: false,
     warranty_expires: "",
     serial_number: "",
@@ -70,6 +73,12 @@ const ItemForm = () => {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!isEdit) {
+      setForm((prev) => ({ ...prev, currency: defaultCurrency }));
+    }
+  }, [defaultCurrency, isEdit]);
 
   useEffect(() => {
     if (existingItem && isEdit) {
@@ -349,19 +358,14 @@ const ItemForm = () => {
                 <Label>Использовать иконку вместо фото</Label>
               </div>
               {useIcon && (
-                <div className="flex flex-wrap gap-2">
-                  {ICON_OPTIONS.map(icon => (
-                    <button
-                      key={icon}
-                      type="button"
-                      className={`text-2xl p-2 rounded-lg transition-colors ${
-                        form.icon === icon ? "bg-primary text-primary-foreground" : "bg-muted hover:bg-muted/80"
-                      }`}
-                      onClick={() => update("icon", icon)}
-                    >
-                      {icon}
-                    </button>
-                  ))}
+                <div>
+                  <Label>Иконка товара</Label>
+                  <IconSelect
+                    icons={ICON_OPTIONS}
+                    value={form.icon || "📦"}
+                    onValueChange={(value) => update("icon", value)}
+                    className="mt-1"
+                  />
                 </div>
               )}
 

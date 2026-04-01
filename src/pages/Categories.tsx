@@ -12,12 +12,14 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
 import { Plus, Trash2, Tags, Edit, ChevronRight, ChevronDown, Loader2, Download } from "lucide-react";
 import type { Category } from "@/hooks/useData";
+import IconSelect from "@/components/IconSelect";
 
 const defaultEmojis = [
   "💻", "🔧", "👕", "📚", "🧸", "🏠", "🍳", "💊", "📄", "🎮", "📦", "🎧", "🚗", "⚽", "🎨", "🧴", "🌱", "🏗️", "🎁", "🏋️",
@@ -182,35 +184,23 @@ const Categories = () => {
         <CardContent className="p-4">
           <div className="flex flex-col gap-3">
             <div className="flex gap-2">
-              <Input value={newIcon} onChange={(e) => setNewIcon(e.target.value)} className="w-14 text-center flex-shrink-0" maxLength={2} />
+              <IconSelect icons={defaultEmojis} value={newIcon} onValueChange={setNewIcon} className="w-24 flex-shrink-0" />
               <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Название категории" className="flex-1 min-w-0" />
               <Button onClick={handleAdd} disabled={!newName.trim()} className="flex-shrink-0">
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
-            <div className="flex flex-wrap gap-1">
-              {defaultEmojis.map((emoji) => (
-                <button
-                  key={emoji}
-                  onClick={() => setNewIcon(emoji)}
-                  className={`w-8 h-8 rounded text-lg flex items-center justify-center transition-colors ${
-                    newIcon === emoji ? "bg-accent text-accent-foreground" : "hover:bg-muted"
-                  }`}
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
-            <select
-              value={newParentId}
-              onChange={(e) => setNewParentId(e.target.value)}
-              className="border border-input rounded-md px-3 py-2 text-sm bg-card text-foreground w-full"
-            >
-              <option value="">Корневая категория</option>
-              {getParentOptions().map((c) => (
-                <option key={c.id} value={c.id}>{c.label}</option>
-              ))}
-            </select>
+            <Select value={newParentId || "root"} onValueChange={(value) => setNewParentId(value === "root" ? "" : value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Корневая категория" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="root">Корневая категория</SelectItem>
+                {getParentOptions().map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
@@ -264,21 +254,8 @@ const Categories = () => {
           </DialogHeader>
           <div className="space-y-4">
             <div className="flex gap-2">
-              <Input value={editIcon} onChange={(e) => setEditIcon(e.target.value)} className="w-14 text-center" maxLength={2} />
+              <IconSelect icons={defaultEmojis} value={editIcon} onValueChange={setEditIcon} className="w-24 flex-shrink-0" />
               <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Название" className="flex-1" />
-            </div>
-            <div className="flex flex-wrap gap-1">
-              {defaultEmojis.map((emoji) => (
-                <button
-                  key={emoji}
-                  onClick={() => setEditIcon(emoji)}
-                  className={`w-8 h-8 rounded text-lg flex items-center justify-center transition-colors ${
-                    editIcon === emoji ? "bg-accent text-accent-foreground" : "hover:bg-muted"
-                  }`}
-                >
-                  {emoji}
-                </button>
-              ))}
             </div>
             <Button onClick={handleSaveEdit} disabled={!editName.trim()} className="w-full">
               Сохранить
