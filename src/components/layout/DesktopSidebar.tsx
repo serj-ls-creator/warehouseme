@@ -5,21 +5,23 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-
-const navItems = [
-  { to: "/", icon: Home, label: "Главная", emoji: "🏠" },
-  { to: "/items", icon: Package, label: "Все вещи", emoji: "📦" },
-  { to: "/locations", icon: MapPin, label: "Локации", emoji: "📍" },
-  { to: "/categories", icon: Tags, label: "Категории", emoji: "🏷️" },
-  { to: "/expiry", icon: Clock, label: "Сроки годности", emoji: "⏰" },
-  { to: "/statistics", icon: BarChart3, label: "Статистика", emoji: "📊" },
-  { to: "/settings", icon: Settings, label: "Настройки", emoji: "⚙️" },
-];
+import { useI18n } from "@/hooks/usePreferences";
 
 export const DesktopSidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const { signOut } = useAuth();
   const location = useLocation();
+  const { t } = useI18n();
+
+  const navItems = [
+    { to: "/", icon: Home, label: t("nav.home"), emoji: "🏠" },
+    { to: "/items", icon: Package, label: t("nav.allItems"), emoji: "📦" },
+    { to: "/locations", icon: MapPin, label: t("nav.locations"), emoji: "📍" },
+    { to: "/categories", icon: Tags, label: t("nav.categories"), emoji: "🏷️" },
+    { to: "/expiry", icon: Clock, label: t("nav.expiry"), emoji: "⏰" },
+    { to: "/statistics", icon: BarChart3, label: t("nav.statistics"), emoji: "📊" },
+    { to: "/settings", icon: Settings, label: t("nav.settings"), emoji: "⚙️" },
+  ];
 
   return (
     <aside
@@ -65,14 +67,14 @@ export const DesktopSidebar = () => {
           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground w-full transition-colors"
         >
           <LogOut className="w-5 h-5 flex-shrink-0" />
-          {!collapsed && <span>Выход</span>}
+          {!collapsed && <span>{t("nav.logout")}</span>}
         </button>
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent/50 w-full transition-colors"
         >
           {collapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
-          {!collapsed && <span>Свернуть</span>}
+          {!collapsed && <span>{t("nav.collapse")}</span>}
         </button>
       </div>
     </aside>

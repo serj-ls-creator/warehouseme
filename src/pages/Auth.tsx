@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useI18n } from "@/hooks/usePreferences";
 import { Package, Mail, Lock, User, ArrowRight } from "lucide-react";
 
 type AuthMode = "login" | "register" | "reset";
@@ -18,6 +19,7 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useI18n();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,8 +41,8 @@ const Auth = () => {
         });
         if (error) throw error;
         toast({
-          title: "Регистрация успешна",
-          description: "Добро пожаловать в WarehouseMe!",
+          title: t("auth.registerSuccess"),
+          description: t("auth.welcome"),
         });
         navigate("/");
       } else {
@@ -49,13 +51,13 @@ const Auth = () => {
         });
         if (error) throw error;
         toast({
-          title: "Письмо отправлено",
-          description: "Проверьте почту для восстановления пароля.",
+          title: t("auth.emailSent"),
+          description: t("auth.checkEmail"),
         });
       }
     } catch (error: any) {
       toast({
-        title: "Ошибка",
+        title: t("common.error"),
         description: error.message,
         variant: "destructive",
       });
@@ -74,33 +76,33 @@ const Auth = () => {
             </div>
             <span className="text-2xl font-bold text-foreground">WarehouseMe</span>
           </div>
-          <p className="text-muted-foreground">Домашний инвентарь вещей</p>
+          <p className="text-muted-foreground">{t("auth.subtitle")}</p>
         </div>
 
         <Card>
           <CardHeader>
             <CardTitle>
-              {mode === "login" && "Вход в аккаунт"}
-              {mode === "register" && "Регистрация"}
-              {mode === "reset" && "Восстановление пароля"}
+              {mode === "login" && t("auth.loginTitle")}
+              {mode === "register" && t("auth.registerTitle")}
+              {mode === "reset" && t("auth.resetTitle")}
             </CardTitle>
             <CardDescription>
-              {mode === "login" && "Войдите, чтобы управлять вашим инвентарём"}
-              {mode === "register" && "Создайте аккаунт для начала работы"}
-              {mode === "reset" && "Введите email для получения ссылки на восстановление"}
+              {mode === "login" && t("auth.loginDescription")}
+              {mode === "register" && t("auth.registerDescription")}
+              {mode === "reset" && t("auth.resetDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               {mode === "register" && (
                 <div className="space-y-2">
-                  <Label htmlFor="name">Имя</Label>
+                    <Label htmlFor="name">{t("auth.name")}</Label>
                   <div className="relative">
                     <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="name"
                       type="text"
-                      placeholder="Ваше имя"
+                        placeholder={t("auth.yourName")}
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       className="pl-10"
@@ -109,7 +111,7 @@ const Auth = () => {
                 </div>
               )}
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t("auth.email")}</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -125,7 +127,7 @@ const Auth = () => {
               </div>
               {mode !== "reset" && (
                 <div className="space-y-2">
-                  <Label htmlFor="password">Пароль</Label>
+                    <Label htmlFor="password">{t("auth.password")}</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -142,11 +144,11 @@ const Auth = () => {
                 </div>
               )}
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Загрузка..." : (
+                {loading ? t("common.loading") : (
                   <>
-                    {mode === "login" && "Войти"}
-                    {mode === "register" && "Зарегистрироваться"}
-                    {mode === "reset" && "Отправить ссылку"}
+                    {mode === "login" && t("auth.login")}
+                    {mode === "register" && t("auth.register")}
+                    {mode === "reset" && t("auth.sendLink")}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}
@@ -160,27 +162,27 @@ const Auth = () => {
                     onClick={() => setMode("reset")}
                     className="text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    Забыли пароль?
+                    {t("auth.forgotPassword")}
                   </button>
                   <div>
-                    <span className="text-muted-foreground">Нет аккаунта? </span>
+                    <span className="text-muted-foreground">{t("auth.noAccount")} </span>
                     <button
                       onClick={() => setMode("register")}
                       className="text-accent font-medium hover:underline"
                     >
-                      Зарегистрируйтесь
+                      {t("auth.signUp")}
                     </button>
                   </div>
                 </>
               )}
               {mode === "register" && (
                 <div>
-                  <span className="text-muted-foreground">Уже есть аккаунт? </span>
+                  <span className="text-muted-foreground">{t("auth.haveAccount")} </span>
                   <button
                     onClick={() => setMode("login")}
                     className="text-accent font-medium hover:underline"
                   >
-                    Войдите
+                      {t("auth.signIn")}
                   </button>
                 </div>
               )}
@@ -189,7 +191,7 @@ const Auth = () => {
                   onClick={() => setMode("login")}
                   className="text-accent font-medium hover:underline"
                 >
-                  Вернуться к входу
+                  {t("auth.backToLogin")}
                 </button>
               )}
             </div>
