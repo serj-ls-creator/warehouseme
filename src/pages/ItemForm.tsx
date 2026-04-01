@@ -90,7 +90,9 @@ const ItemForm = () => {
         location_id: existingItem.location_id ?? "",
         purchase_date: existingItem.purchase_date ?? "",
         price: existingItem.price?.toString() ?? "",
-        currency: existingItem.currency ?? "UAH",
+        currency: (existingItem.currency === "EUR" || existingItem.currency === "UAH" || existingItem.currency === "USD"
+          ? existingItem.currency
+          : defaultCurrency),
         hasExpiry: !!existingItem.warranty_expires,
         warranty_expires: existingItem.warranty_expires ?? "",
         serial_number: existingItem.serial_number ?? "",
@@ -104,7 +106,7 @@ const ItemForm = () => {
         setPhotoPreview(existingItem.photo_url);
       }
     }
-  }, [existingItem, isEdit]);
+  }, [defaultCurrency, existingItem, isEdit]);
 
   const update = (field: string, value: string | boolean) => {
     setForm((prev) => ({ ...prev, [field]: value }));
