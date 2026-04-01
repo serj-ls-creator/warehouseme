@@ -10,14 +10,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Search, Plus, Package, DollarSign, Clock, CalendarPlus } from "lucide-react";
 import { isEmoji } from "@/lib/isEmoji";
 import { differenceInDays, startOfMonth } from "date-fns";
-import { formatNumberByLocale, usePreferences } from "@/hooks/usePreferences";
+import { formatNumberByLocale, useI18n } from "@/hooks/usePreferences";
 
 const Dashboard = () => {
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
   const { data: items, isLoading } = useItems({ search: search || undefined });
   const { data: locations } = useLocations();
-  const { locale } = usePreferences();
+  const { locale, t } = useI18n();
 
   const now = new Date();
   const thisMonth = startOfMonth(now);
@@ -36,23 +36,23 @@ const Dashboard = () => {
 
   const getExpiryBadge = (expiresDate: string) => {
     const days = differenceInDays(new Date(expiresDate), now);
-    if (days < 7) return { label: `${days} дн.`, variant: "destructive" as const, color: "border-destructive text-destructive" };
-    if (days < 30) return { label: `${days} дн.`, variant: "warning" as const, color: "border-warning text-warning" };
-    return { label: `${days} дн.`, variant: "success" as const, color: "border-success text-success" };
+    if (days < 7) return { label: `${days} ${t("dashboard.daysShort")}`, variant: "destructive" as const, color: "border-destructive text-destructive" };
+    if (days < 30) return { label: `${days} ${t("dashboard.daysShort")}`, variant: "warning" as const, color: "border-warning text-warning" };
+    return { label: `${days} ${t("dashboard.daysShort")}`, variant: "success" as const, color: "border-success text-success" };
   };
 
   const stats = [
-    { label: "Всего вещей", value: totalItems, icon: Package, iconClassName: "text-primary", cardClassName: "bg-stat-blue", onClick: () => navigate("/items") },
-    { label: "Общая стоимость", value: `${formatNumberByLocale(totalValue, locale)} ₴`, icon: DollarSign, iconClassName: "text-success", cardClassName: "bg-stat-green", onClick: () => navigate("/finance") },
-    { label: "Срок годности ⚠️", value: expiringItems.length, icon: Clock, iconClassName: "text-warning", cardClassName: "bg-stat-yellow", onClick: () => navigate("/expiry") },
-    { label: "В этом месяце", value: addedThisMonth, icon: CalendarPlus, iconClassName: "text-foreground", cardClassName: "bg-stat-purple", onClick: undefined },
+    { label: t("dashboard.totalItems"), value: totalItems, icon: Package, iconClassName: "text-primary", cardClassName: "bg-stat-blue", onClick: () => navigate("/items") },
+    { label: t("dashboard.totalValue"), value: `${formatNumberByLocale(totalValue, locale)} ₴`, icon: DollarSign, iconClassName: "text-success", cardClassName: "bg-stat-green", onClick: () => navigate("/finance") },
+    { label: t("dashboard.expiry"), value: expiringItems.length, icon: Clock, iconClassName: "text-warning", cardClassName: "bg-stat-yellow", onClick: () => navigate("/expiry") },
+    { label: t("dashboard.thisMonth"), value: addedThisMonth, icon: CalendarPlus, iconClassName: "text-foreground", cardClassName: "bg-stat-purple", onClick: undefined },
   ];
 
   return (
     <AppLayout>
       <div className="relative mb-6">
         <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-        <Input placeholder="Поиск по всем вещам..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-11 h-12 text-base bg-card" />
+        <Input placeholder={t("dashboard.searchPlaceholder")} value={search} onChange={(e) => setSearch(e.target.value)} className="pl-11 h-12 text-base bg-card" />
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
@@ -80,8 +80,8 @@ const Dashboard = () => {
       {expiringItems.length > 0 && (
         <section className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-foreground">⏰ Срок годности заканчивается</h2>
-            <Button variant="ghost" size="sm" onClick={() => navigate("/expiry")}>Все →</Button>
+            <h2 className="text-lg font-semibold text-foreground">⏰ {t("dashboard.expiringTitle")}</h2>
+            <Button variant="ghost" size="sm" onClick={() => navigate("/expiry")}>{t("dashboard.viewAll")}</Button>
           </div>
           <div className="flex gap-3 overflow-x-auto pb-2">
             {expiringItems.map((item) => {
@@ -113,8 +113,8 @@ const Dashboard = () => {
 
       <section className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-foreground">📦 Недавно добавленные</h2>
-          <Button variant="ghost" size="sm" onClick={() => navigate("/items")}>Все →</Button>
+          <h2 className="text-lg font-semibold text-foreground">📦 {t("dashboard.recentTitle")}</h2>
+          <Button variant="ghost" size="sm" onClick={() => navigate("/items")}>{t("dashboard.viewAll")}</Button>
         </div>
         {isLoading ? (
           <div className="grid grid-cols-2 gap-3">
@@ -152,9 +152,9 @@ const Dashboard = () => {
           <Card>
             <CardContent className="p-8 text-center">
               <Package className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-              <p className="text-muted-foreground mb-3">Пока нет вещей</p>
+              <p className="text-muted-foreground mb-3">{t("dashboard.noItems")}</p>
               <Button onClick={() => navigate("/items/new")}>
-                <Plus className="h-4 w-4 mr-2" /> Добавить первую вещь
+                <Plus className="h-4 w-4 mr-2" /> {t("dashboard.addFirstItem")}
               </Button>
             </CardContent>
           </Card>

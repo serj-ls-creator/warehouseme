@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useItems, useCategories, useLocations, getLocationPath, getCategoryPath, getCurrencySymbol } from "@/hooks/useData";
-import { formatDateByLocale, formatNumberByLocale, usePreferences } from "@/hooks/usePreferences";
+import { useItems, useCategories, useLocations, getLocationPath, getCurrencySymbol } from "@/hooks/useData";
+import { formatDateByLocale, formatNumberByLocale, useI18n } from "@/hooks/usePreferences";
 import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -30,7 +30,7 @@ const Items = () => {
   const [expandedLocations, setExpandedLocations] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { locale } = usePreferences();
+  const { locale, t } = useI18n();
 
   useEffect(() => {
     setCategoryFilter(searchParams.get("category") ?? "");
@@ -118,10 +118,10 @@ const Items = () => {
   const getExpiryBadge = (expiresDate: string | null) => {
     if (!expiresDate) return null;
     const days = differenceInDays(new Date(expiresDate), now);
-    if (days < 0) return { label: "Просрочено", className: "bg-muted text-muted-foreground" };
-    if (days < 7) return { label: `${days} дн.`, className: "bg-danger text-danger-foreground" };
-    if (days < 30) return { label: `${days} дн.`, className: "bg-warning text-warning-foreground" };
-    if (days < 90) return { label: `${days} дн.`, className: "bg-success text-success-foreground" };
+    if (days < 0) return { label: t("items.expired"), className: "bg-muted text-muted-foreground" };
+    if (days < 7) return { label: `${days} ${t("items.daysShort")}`, className: "bg-danger text-danger-foreground" };
+    if (days < 30) return { label: `${days} ${t("items.daysShort")}`, className: "bg-warning text-warning-foreground" };
+    if (days < 90) return { label: `${days} ${t("items.daysShort")}`, className: "bg-success text-success-foreground" };
     return null;
   };
 
@@ -139,7 +139,7 @@ const Items = () => {
   return (
     <AppLayout>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-foreground">📦 Все вещи</h1>
+        <h1 className="text-2xl font-bold text-foreground">📦 {t("items.title")}</h1>
         <div className="flex items-center gap-2">
           <Button variant={viewMode === "grid" ? "default" : "outline"} size="icon" onClick={() => setViewMode("grid")}>
             <LayoutGrid className="h-4 w-4" />
@@ -154,15 +154,15 @@ const Items = () => {
       <div className="space-y-3 mb-6">
         <div className="relative">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Поиск..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10 bg-card" />
+          <Input placeholder={t("items.searchPlaceholder")} value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10 bg-card" />
         </div>
         <div className="flex gap-2 overflow-x-auto pb-1">
           <Select value={categoryFilter || "all"} onValueChange={handleCategoryChange}>
             <SelectTrigger className="w-[150px] flex-shrink-0 bg-card">
-              <SelectValue placeholder="Категория" />
+              <SelectValue placeholder={t("items.category")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Все категории</SelectItem>
+              <SelectItem value="all">{t("items.allCategories")}</SelectItem>
               {categories?.filter(c => !c.parent_id).map((c) => (
                 <SelectItem key={c.id} value={c.id}>{c.icon} {c.name}</SelectItem>
               ))}
@@ -177,7 +177,7 @@ const Items = () => {
               onClick={() => setLocationTreeOpen(!locationTreeOpen)}
             >
               <span className="truncate text-sm">
-                {selectedLocationName ? `${selectedLocationName.icon ?? "📍"} ${selectedLocationName.name}` : "Все локации"}
+                {selectedLocationName ? `${selectedLocationName.icon ?? "📍"} ${selectedLocationName.name}` : t("items.allLocations")}
               </span>
             </Button>
             {locationTreeOpen && (
@@ -186,7 +186,7 @@ const Items = () => {
                   className={`w-full text-left py-1.5 px-2 rounded-md text-sm hover:bg-muted ${!locationFilter ? "bg-primary text-primary-foreground" : ""}`}
                   onClick={() => { setLocationFilter(""); setLocationTreeOpen(false); }}
                 >
-                  Все локации
+                  {t("items.allLocations")}
                 </button>
                 {renderLocationTree(locationTree)}
               </div>
@@ -195,13 +195,13 @@ const Items = () => {
 
           <Select value={sortBy} onValueChange={setSortBy}>
             <SelectTrigger className="w-[150px] flex-shrink-0 bg-card">
-              <SelectValue placeholder="Сортировка" />
+              <SelectValue placeholder={t("items.sort")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="created_at">По дате</SelectItem>
-              <SelectItem value="name">По имени</SelectItem>
-              <SelectItem value="price">По цене</SelectItem>
-              <SelectItem value="expiry">По сроку годности</SelectItem>
+              <SelectItem value="created_at">{t("items.sortDate")}</SelectItem>
+              <SelectItem value="name">{t("items.sortName")}</SelectItem>
+              <SelectItem value="price">{t("items.sortPrice")}</SelectItem>
+              <SelectItem value="expiry">{t("items.sortExpiry")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -218,9 +218,9 @@ const Items = () => {
         <Card>
           <CardContent className="p-8 text-center">
             <Package className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-            <p className="text-muted-foreground mb-3">Нет вещей</p>
+            <p className="text-muted-foreground mb-3">{t("items.noItems")}</p>
             <Button onClick={() => navigate("/items/new")}>
-              <Plus className="h-4 w-4 mr-2" /> Добавить вещь
+              <Plus className="h-4 w-4 mr-2" /> {t("items.addItem")}
             </Button>
           </CardContent>
         </Card>
@@ -283,7 +283,7 @@ const Items = () => {
                       <p className="text-xs text-muted-foreground truncate">{locationBreadcrumb}</p>
                     )}
                     {item.purchase_date && (
-                      <p className="text-xs text-muted-foreground">Куплено: {formatDateByLocale(item.purchase_date, locale)}</p>
+                      <p className="text-xs text-muted-foreground">{t("items.boughtOn")} {formatDateByLocale(item.purchase_date, locale)}</p>
                     )}
                   </div>
                   <div className="text-right flex-shrink-0">
