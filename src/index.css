@@ -51,6 +51,11 @@
     --success-foreground: 0 0% 100%;
     --danger: 0 84% 60%;
     --danger-foreground: 0 0% 100%;
+
+    --stat-blue: 208 100% 97%;
+    --stat-green: 138 56% 96%;
+    --stat-yellow: 48 100% 94%;
+    --stat-purple: 270 100% 97%;
   }
 
   .dark {
@@ -90,6 +95,11 @@
     --sidebar-accent-foreground: 220 20% 90%;
     --sidebar-border: 222 40% 15%;
     --sidebar-ring: 45 91% 53%;
+
+    --stat-blue: 222 28% 18%;
+    --stat-green: 152 25% 18%;
+    --stat-yellow: 40 28% 18%;
+    --stat-purple: 270 22% 18%;
   }
 }
 

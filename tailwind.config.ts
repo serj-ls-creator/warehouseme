@@ -72,6 +72,12 @@ export default {
           DEFAULT: "hsl(var(--danger))",
           foreground: "hsl(var(--danger-foreground))",
         },
+        stat: {
+          blue: "hsl(var(--stat-blue))",
+          green: "hsl(var(--stat-green))",
+          yellow: "hsl(var(--stat-yellow))",
+          purple: "hsl(var(--stat-purple))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

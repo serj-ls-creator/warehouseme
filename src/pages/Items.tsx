@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useItems, useCategories, useLocations, getLocationPath, getCategoryPath, getCurrencySymbol } from "@/hooks/useData";
+import { formatDateByLocale, formatNumberByLocale, usePreferences } from "@/hooks/usePreferences";
 import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -28,6 +29,13 @@ const Items = () => {
   const [locationTreeOpen, setLocationTreeOpen] = useState(false);
   const [expandedLocations, setExpandedLocations] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { locale } = usePreferences();
+
+  useEffect(() => {
+    setCategoryFilter(searchParams.get("category") ?? "");
+    setLocationFilter(searchParams.get("location") ?? "");
+  }, [searchParams]);
 
   const { data: items, isLoading } = useItems({
     search: search || undefined,
@@ -240,7 +248,7 @@ const Items = () => {
                   )}
                   <div className="flex items-center justify-between mt-1">
                     {item.price && (
-                      <span className="text-sm font-semibold text-foreground">{item.price.toLocaleString("uk")} {getCurrencySymbol(item.currency)}</span>
+                  <span className="text-sm font-semibold text-foreground">{formatNumberByLocale(item.price, locale)} {getCurrencySymbol(item.currency)}</span>
                     )}
                     {expiry && (
                       <span className={`text-xs px-1.5 py-0.5 rounded-full ${expiry.className}`}>{expiry.label}</span>
@@ -275,12 +283,12 @@ const Items = () => {
                       <p className="text-xs text-muted-foreground truncate">{locationBreadcrumb}</p>
                     )}
                     {item.purchase_date && (
-                      <p className="text-xs text-muted-foreground">Куплено: {new Date(item.purchase_date).toLocaleDateString("uk")}</p>
+                      <p className="text-xs text-muted-foreground">Куплено: {formatDateByLocale(item.purchase_date, locale)}</p>
                     )}
                   </div>
                   <div className="text-right flex-shrink-0">
                     {item.price && (
-                      <p className="text-sm font-semibold text-foreground">{item.price.toLocaleString("uk")} {getCurrencySymbol(item.currency)}</p>
+                      <p className="text-sm font-semibold text-foreground">{formatNumberByLocale(item.price, locale)} {getCurrencySymbol(item.currency)}</p>
                     )}
                     {expiry && (
                       <span className={`text-xs px-1.5 py-0.5 rounded-full ${expiry.className}`}>{expiry.label}</span>

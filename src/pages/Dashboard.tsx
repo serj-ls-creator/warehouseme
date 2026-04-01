@@ -10,12 +10,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Search, Plus, Package, DollarSign, Clock, CalendarPlus } from "lucide-react";
 import { isEmoji } from "@/lib/isEmoji";
 import { differenceInDays, startOfMonth } from "date-fns";
+import { formatNumberByLocale, usePreferences } from "@/hooks/usePreferences";
 
 const Dashboard = () => {
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
   const { data: items, isLoading } = useItems({ search: search || undefined });
   const { data: locations } = useLocations();
+  const { locale } = usePreferences();
 
   const now = new Date();
   const thisMonth = startOfMonth(now);
@@ -40,10 +42,10 @@ const Dashboard = () => {
   };
 
   const stats = [
-    { label: "Всего вещей", value: totalItems, icon: Package, color: "text-primary", onClick: () => navigate("/items") },
-    { label: "Общая стоимость", value: `${totalValue.toLocaleString("uk")} ₴`, icon: DollarSign, color: "text-success", onClick: () => navigate("/finance") },
-    { label: "Срок годности ⚠️", value: expiringItems.length, icon: Clock, color: "text-warning", onClick: () => navigate("/expiry") },
-    { label: "В этом месяце", value: addedThisMonth, icon: CalendarPlus, color: "text-accent", onClick: undefined },
+    { label: "Всего вещей", value: totalItems, icon: Package, iconClassName: "text-primary", cardClassName: "bg-stat-blue", onClick: () => navigate("/items") },
+    { label: "Общая стоимость", value: `${formatNumberByLocale(totalValue, locale)} ₴`, icon: DollarSign, iconClassName: "text-success", cardClassName: "bg-stat-green", onClick: () => navigate("/finance") },
+    { label: "Срок годности ⚠️", value: expiringItems.length, icon: Clock, iconClassName: "text-warning", cardClassName: "bg-stat-yellow", onClick: () => navigate("/expiry") },
+    { label: "В этом месяце", value: addedThisMonth, icon: CalendarPlus, iconClassName: "text-foreground", cardClassName: "bg-stat-purple", onClick: undefined },
   ];
 
   return (
@@ -57,12 +59,12 @@ const Dashboard = () => {
         {stats.map((stat) => (
           <Card
             key={stat.label}
-            className={`animate-fade-in ${stat.onClick ? "cursor-pointer hover:shadow-md transition-shadow" : ""}`}
+            className={`animate-fade-in border-transparent ${stat.cardClassName} ${stat.onClick ? "cursor-pointer hover:shadow-md transition-shadow" : ""}`}
             onClick={stat.onClick}
           >
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-2">
-                <stat.icon className={`h-5 w-5 ${stat.color}`} />
+                <stat.icon className={`h-5 w-5 ${stat.iconClassName}`} />
                 <span className="text-xs text-muted-foreground">{stat.label}</span>
               </div>
               {isLoading ? (
@@ -139,7 +141,7 @@ const Dashboard = () => {
                       <p className="text-xs text-muted-foreground truncate">{locationBreadcrumb}</p>
                     )}
                     {item.price && (
-                      <p className="text-sm font-semibold text-foreground mt-1">{item.price.toLocaleString("uk")} {getCurrencySymbol(item.currency)}</p>
+                      <p className="text-sm font-semibold text-foreground mt-1">{formatNumberByLocale(item.price, locale)} {getCurrencySymbol(item.currency)}</p>
                     )}
                   </CardContent>
                 </Card>

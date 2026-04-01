@@ -83,7 +83,7 @@ export const getCurrencySymbol = (currency: string | null): string => {
     case "UAH": return "₴";
     case "USD": return "$";
     case "EUR": return "€";
-    default: return "₴";
+    default: return "€";
   }
 };
 

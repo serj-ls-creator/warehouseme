@@ -1,12 +1,14 @@
 import { useAuth } from "@/hooks/useAuth";
+import { usePreferences } from "@/hooks/usePreferences";
 import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LogOut, User, Download } from "lucide-react";
 
 const SettingsPage = () => {
   const { user, signOut } = useAuth();
+  const { currency, setCurrency, language, setLanguage } = usePreferences();
 
   return (
     <AppLayout>
@@ -29,6 +31,41 @@ const SettingsPage = () => {
                 </p>
                 <p className="text-sm text-muted-foreground">{user?.email}</p>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Предпочтения</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-foreground">Валюта по умолчанию</p>
+              <Select value={currency} onValueChange={(value) => setCurrency(value as "EUR" | "UAH" | "USD")}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Выберите валюту" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="EUR">Евро (€)</SelectItem>
+                  <SelectItem value="UAH">Гривна (₴)</SelectItem>
+                  <SelectItem value="USD">Доллар ($)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-foreground">Язык</p>
+              <Select value={language} onValueChange={(value) => setLanguage(value as "uk" | "ru" | "en")}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Выберите язык" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="uk">Українська</SelectItem>
+                  <SelectItem value="ru">Русский</SelectItem>
+                  <SelectItem value="en">English</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </CardContent>
         </Card>
