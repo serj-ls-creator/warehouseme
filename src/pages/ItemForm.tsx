@@ -36,7 +36,7 @@ const ItemForm = () => {
   const isEdit = !!id && id !== "new";
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { currency: defaultCurrency } = usePreferences();
+  const { currency: defaultCurrency, t } = useI18n();
   const { toast } = useToast();
   const { data: existingItem } = useItem(isEdit ? id : "");
   const { data: categories } = useCategories();
