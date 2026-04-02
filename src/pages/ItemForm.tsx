@@ -462,8 +462,8 @@ const ItemForm = () => {
           {step === 3 && (
             <>
               <div>
-                <Label>Заметки</Label>
-                <Textarea value={form.notes} onChange={(e) => update("notes", e.target.value)} placeholder="Дополнительная информация..." className="mt-1" rows={6} />
+                <Label>{t("itemForm.notes")}</Label>
+                <Textarea value={form.notes} onChange={(e) => update("notes", e.target.value)} placeholder={t("itemForm.notesPlaceholder")} className="mt-1" rows={6} />
               </div>
             </>
           )}
