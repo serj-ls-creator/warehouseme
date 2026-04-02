@@ -339,8 +339,8 @@ const ItemForm = () => {
                     onClick={() => fileInputRef.current?.click()}
                   >
                     <Camera className="h-8 w-8 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">Нажмите для загрузки фото</p>
-                    <p className="text-xs text-muted-foreground">Макс. 5 МБ</p>
+                    <p className="text-sm text-muted-foreground">{t("itemForm.uploadPhoto")}</p>
+                    <p className="text-xs text-muted-foreground">{t("itemForm.maxFile")}</p>
                   </div>
                 ) : null}
               </div>
