@@ -283,17 +283,16 @@ const ItemForm = () => {
           {step === 0 && (
             <>
               <div>
-                <Label>Название *</Label>
-                <Input value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="Например: MacBook Pro" className="mt-1" />
+                <Label>{t("itemForm.name")}</Label>
+                <Input value={form.name} onChange={(e) => update("name", e.target.value)} placeholder={t("itemForm.namePlaceholder")} className="mt-1" />
               </div>
-              {/* Barcode under name */}
               <div>
-                <Label>Штрихкод (поиск товара)</Label>
+                <Label>{t("itemForm.barcode")}</Label>
                 <div className="flex gap-2 mt-1">
                   <Input
                     value={form.barcode}
                     onChange={(e) => update("barcode", e.target.value)}
-                    placeholder="Введите штрихкод"
+                    placeholder={t("itemForm.barcodePlaceholder")}
                     className="flex-1"
                   />
                   <Button
