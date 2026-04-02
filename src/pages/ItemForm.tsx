@@ -447,7 +447,7 @@ const ItemForm = () => {
               </div>
               {form.hasExpiry && (
                 <div>
-                  <Label>Дата окончания срока годности</Label>
+                  <Label>{t("itemForm.expiryDate")}</Label>
                   <Input type="date" value={form.warranty_expires} onChange={(e) => update("warranty_expires", e.target.value)} className="mt-1" />
                 </div>
               )}
