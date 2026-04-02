@@ -303,11 +303,11 @@ const ItemForm = () => {
                     {barcodeLookup.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">Введите штрихкод и нажмите поиск для автозаполнения</p>
+                <p className="text-xs text-muted-foreground mt-1">{t("itemForm.barcodeHint")}</p>
               </div>
               <div>
-                <Label>Описание</Label>
-                <Textarea value={form.description} onChange={(e) => update("description", e.target.value)} placeholder="Описание вещи" className="mt-1" rows={3} />
+                <Label>{t("itemForm.description")}</Label>
+                <Textarea value={form.description} onChange={(e) => update("description", e.target.value)} placeholder={t("itemForm.descriptionPlaceholder")} className="mt-1" rows={3} />
               </div>
 
               {/* Photo upload */}
