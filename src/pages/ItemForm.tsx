@@ -394,10 +394,10 @@ const ItemForm = () => {
           {step === 1 && (
             <>
               <div>
-                <Label>Локация</Label>
+                <Label>{t("itemForm.location")}</Label>
                 <Select value={form.location_id} onValueChange={(v) => update("location_id", v)}>
                   <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Выберите локацию" />
+                    <SelectValue placeholder={t("itemForm.selectLocation")} />
                   </SelectTrigger>
                   <SelectContent>
                     {getLocationOptions().map((l) => (
