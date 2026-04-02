@@ -9,10 +9,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Clock, AlertTriangle } from "lucide-react";
 import { differenceInDays, format } from "date-fns";
 import { isEmoji } from "@/lib/isEmoji";
+import { useI18n } from "@/hooks/usePreferences";
 
 const ExpiryPage = () => {
   const { data: items, isLoading } = useItems();
   const navigate = useNavigate();
+  const { t } = useI18n();
   const now = new Date();
 
   const expiryItems = items?.filter(i => i.warranty_expires) ?? [];
@@ -53,7 +55,7 @@ const ExpiryPage = () => {
             <div className="flex-1 min-w-0">
               <p className="font-medium text-foreground truncate">{item.name}</p>
               <p className="text-xs text-muted-foreground">
-                до {format(new Date(item.warranty_expires!), "dd.MM.yyyy")}
+                {t("common.until")} {format(new Date(item.warranty_expires!), "dd.MM.yyyy")}
               </p>
               <Progress value={progress} className="h-1.5 mt-2" />
             </div>
@@ -61,7 +63,7 @@ const ExpiryPage = () => {
               <p className={`text-2xl font-bold ${daysLeft < 0 ? "text-muted-foreground" : daysLeft < 7 ? "text-destructive" : daysLeft < 30 ? "text-warning" : daysLeft < 90 ? "text-success" : "text-foreground"}`}>
                 {daysLeft < 0 ? "—" : daysLeft}
               </p>
-              <p className="text-xs text-muted-foreground">{daysLeft < 0 ? "просрочено" : "дней"}</p>
+              <p className="text-xs text-muted-foreground">{daysLeft < 0 ? t("expiry.expiredShort") : t("expiry.days")}</p>
             </div>
           </div>
         </CardContent>
@@ -71,15 +73,14 @@ const ExpiryPage = () => {
 
   return (
     <AppLayout>
-      <h1 className="text-2xl font-bold text-foreground mb-6">⏰ Сроки годности</h1>
+      <h1 className="text-2xl font-bold text-foreground mb-6">⏰ {t("expiry.title")}</h1>
 
-      {/* Critical banner */}
       {critical.length > 0 && (
         <Card className="mb-6 border-destructive bg-destructive/5">
           <CardContent className="p-4 flex items-center gap-3">
             <AlertTriangle className="h-5 w-5 text-destructive flex-shrink-0" />
             <p className="text-sm text-foreground">
-              <strong>{critical.length}</strong> {critical.length === 1 ? "вещь просрочивается" : "вещей просрочиваются"} менее чем через 7 дней!
+              <strong>{critical.length}</strong> {critical.length === 1 ? t("expiry.criticalOne") : t("expiry.criticalMany")}
             </p>
           </CardContent>
         </Card>
@@ -92,26 +93,26 @@ const ExpiryPage = () => {
       ) : (
         <Tabs defaultValue="expiring">
           <TabsList className="w-full mb-4">
-            <TabsTrigger value="expiring" className="flex-1">🔴 Заканчивается ({expiringSoon.length})</TabsTrigger>
-            <TabsTrigger value="active" className="flex-1">🟢 Годные ({active.length})</TabsTrigger>
-            <TabsTrigger value="expired" className="flex-1">⚫ Просрочено ({expired.length})</TabsTrigger>
+            <TabsTrigger value="expiring" className="flex-1">🔴 {t("expiry.expiring")} ({expiringSoon.length})</TabsTrigger>
+            <TabsTrigger value="active" className="flex-1">🟢 {t("expiry.active")} ({active.length})</TabsTrigger>
+            <TabsTrigger value="expired" className="flex-1">⚫ {t("expiry.expired")} ({expired.length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="expiring" className="space-y-2">
             {expiringSoon.length > 0 ? expiringSoon.map(item => <ExpiryCard key={item.id} item={item} />) : (
-              <Card><CardContent className="p-8 text-center text-muted-foreground">Нет вещей с заканчивающимся сроком</CardContent></Card>
+              <Card><CardContent className="p-8 text-center text-muted-foreground">{t("expiry.noExpiring")}</CardContent></Card>
             )}
           </TabsContent>
 
           <TabsContent value="active" className="space-y-2">
             {active.length > 0 ? active.map(item => <ExpiryCard key={item.id} item={item} />) : (
-              <Card><CardContent className="p-8 text-center text-muted-foreground">Нет вещей с активным сроком годности</CardContent></Card>
+              <Card><CardContent className="p-8 text-center text-muted-foreground">{t("expiry.noActive")}</CardContent></Card>
             )}
           </TabsContent>
 
           <TabsContent value="expired" className="space-y-2">
             {expired.length > 0 ? expired.map(item => <ExpiryCard key={item.id} item={item} />) : (
-              <Card><CardContent className="p-8 text-center text-muted-foreground">Нет просроченных вещей</CardContent></Card>
+              <Card><CardContent className="p-8 text-center text-muted-foreground">{t("expiry.noExpired")}</CardContent></Card>
             )}
           </TabsContent>
         </Tabs>
