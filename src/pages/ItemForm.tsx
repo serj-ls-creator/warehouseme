@@ -369,10 +369,10 @@ const ItemForm = () => {
               )}
 
               <div>
-                <Label>Категория</Label>
+                <Label>{t("itemForm.category")}</Label>
                 <Select value={form.category_id} onValueChange={(v) => update("category_id", v)}>
                   <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Выберите категорию" />
+                    <SelectValue placeholder={t("itemForm.selectCategory")} />
                   </SelectTrigger>
                   <SelectContent>
                     {getCategoryOptions().map((c) => (
