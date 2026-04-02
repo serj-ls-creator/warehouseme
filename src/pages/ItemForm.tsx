@@ -474,16 +474,16 @@ const ItemForm = () => {
       <div className="flex justify-between mt-6">
         <Button variant="outline" onClick={() => step > 0 ? setStep(step - 1) : navigate(-1)}>
           <ArrowLeft className="h-4 w-4 mr-1" />
-          {step > 0 ? "Назад" : "Отмена"}
+          {step > 0 ? t("itemForm.back") : t("itemForm.cancel")}
         </Button>
-        {step < steps.length - 1 ? (
+        {step < 3 ? (
           <Button onClick={() => setStep(step + 1)} disabled={!canNext}>
-            Далее <ArrowRight className="h-4 w-4 ml-1" />
+            {t("itemForm.next")} <ArrowRight className="h-4 w-4 ml-1" />
           </Button>
         ) : (
           <Button onClick={handleSubmit} disabled={!form.name.trim() || createItem.isPending || updateItem.isPending || uploading}>
             {uploading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Check className="h-4 w-4 mr-1" />}
-            {uploading ? "Загрузка..." : "Сохранить"}
+            {uploading ? t("itemForm.uploading") : t("itemForm.save")}
           </Button>
         )}
       </div>
