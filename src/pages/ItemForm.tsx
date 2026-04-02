@@ -424,7 +424,7 @@ const ItemForm = () => {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label>Цена</Label>
+                  <Label>{t("itemForm.price")}</Label>
                   <Input type="number" value={form.price} onChange={(e) => update("price", e.target.value)} placeholder="0" className="mt-1" />
                 </div>
                 <div>
