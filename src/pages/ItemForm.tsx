@@ -383,7 +383,7 @@ const ItemForm = () => {
                   </SelectContent>
                 </Select>
                 <div className="flex gap-2 mt-2">
-                  <Input value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} placeholder="Новая категория" className="flex-1" />
+                  <Input value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} placeholder={t("itemForm.newCategory")} className="flex-1" />
                   <Button variant="outline" size="sm" onClick={handleAddCategory} disabled={!newCategoryName.trim()}>+</Button>
                 </div>
               </div>
