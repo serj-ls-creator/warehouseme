@@ -10,9 +10,9 @@ import {
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid
 } from "recharts";
 import { format, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, startOfYear, eachMonthOfInterval } from "date-fns";
-import { ru } from "date-fns/locale";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useI18n, formatMonthYearByLocale, formatMonthShortByLocale } from "@/hooks/usePreferences";
 
 const COLORS = ["#1E2A4A", "#F5C518", "#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#06B6D4", "#EC4899", "#14B8A6"];
 
@@ -20,6 +20,7 @@ const Finance = () => {
   const { data: items, isLoading } = useItems();
   const { data: categories } = useCategories();
   const navigate = useNavigate();
+  const { t, locale, currency } = useI18n();
   const now = new Date();
 
   const [viewMode, setViewMode] = useState<"month" | "year">("month");
@@ -29,8 +30,8 @@ const Finance = () => {
   const itemsWithPrice = useMemo(() => allItems.filter(i => i.price && i.purchase_date), [allItems]);
 
   const totalSpent = allItems.reduce((s, i) => s + (i.price ?? 0), 0);
+  const sym = getCurrencySymbol(currency);
 
-  // Monthly spending by day
   const monthStart = startOfMonth(new Date(selectedMonth + "-01"));
   const monthEnd = endOfMonth(monthStart);
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
@@ -45,7 +46,6 @@ const Finance = () => {
 
   const monthTotal = dailyData.reduce((s, d) => s + d.spent, 0);
 
-  // Yearly spending by month
   const yearStart = startOfYear(now);
   const months = eachMonthOfInterval({ start: yearStart, end: now });
   const monthlyData = months.map(m => {
@@ -57,15 +57,12 @@ const Finance = () => {
         return d >= mStart && d <= mEnd;
       })
       .reduce((s, i) => s + (i.price ?? 0), 0);
-    return { month: format(m, "LLL", { locale: ru }), spent };
+    return { month: formatMonthShortByLocale(m, locale), spent };
   });
 
-  // By category - filtered by selected period
   const categorySpending = useMemo(() => {
     if (!categories) return [];
     const rootCats = categories.filter(c => !c.parent_id);
-
-    // Filter items by selected period
     const filteredItems = viewMode === "month"
       ? allItems.filter(i => {
           if (!i.purchase_date) return false;
@@ -88,21 +85,19 @@ const Finance = () => {
     }).filter(c => c.value > 0).sort((a, b) => b.value - a.value);
   }, [allItems, categories, viewMode, selectedMonth]);
 
-  // Recent purchases
   const recentPurchases = [...itemsWithPrice]
     .sort((a, b) => new Date(b.purchase_date!).getTime() - new Date(a.purchase_date!).getTime())
     .slice(0, 10);
 
-  // Month options for selector
   const monthOptions = Array.from({ length: 12 }, (_, i) => {
     const m = subMonths(now, i);
-    return { value: format(m, "yyyy-MM"), label: format(m, "LLLL yyyy", { locale: ru }) };
+    return { value: format(m, "yyyy-MM"), label: formatMonthYearByLocale(m, locale) };
   });
 
   if (isLoading) {
     return (
       <AppLayout>
-        <h1 className="text-2xl font-bold text-foreground mb-6">💰 Финансы</h1>
+        <h1 className="text-2xl font-bold text-foreground mb-6">💰 {t("finance.title")}</h1>
         <div className="space-y-4">
           {[1, 2, 3].map(i => <Skeleton key={i} className="h-48 rounded-lg" />)}
         </div>
@@ -116,39 +111,28 @@ const Finance = () => {
         <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h1 className="text-2xl font-bold text-foreground">💰 Финансы</h1>
+        <h1 className="text-2xl font-bold text-foreground">💰 {t("finance.title")}</h1>
       </div>
 
-      {/* Total */}
       <Card className="mb-6 bg-primary text-primary-foreground">
         <CardContent className="p-6 text-center">
-          <p className="text-sm opacity-80">Общие расходы</p>
-          <p className="text-4xl font-bold mt-1">{totalSpent.toLocaleString("uk")} ₴</p>
-          <p className="text-sm opacity-80 mt-1">{allItems.length} покупок</p>
+          <p className="text-sm opacity-80">{t("finance.totalSpent")}</p>
+          <p className="text-4xl font-bold mt-1">{totalSpent.toLocaleString(locale)} {sym}</p>
+          <p className="text-sm opacity-80 mt-1">{allItems.length} {t("finance.purchases")}</p>
         </CardContent>
       </Card>
 
-      {/* View toggle */}
       <div className="flex gap-2 mb-4">
-        <Button
-          variant={viewMode === "month" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setViewMode("month")}
-        >
-          За месяц
+        <Button variant={viewMode === "month" ? "default" : "outline"} size="sm" onClick={() => setViewMode("month")}>
+          {t("common.month")}
         </Button>
-        <Button
-          variant={viewMode === "year" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setViewMode("year")}
-        >
-          За год
+        <Button variant={viewMode === "year" ? "default" : "outline"} size="sm" onClick={() => setViewMode("year")}>
+          {t("common.year")}
         </Button>
       </div>
 
       {viewMode === "month" ? (
         <>
-          {/* Month selector */}
           <Select value={selectedMonth} onValueChange={setSelectedMonth}>
             <SelectTrigger className="mb-4 bg-card">
               <SelectValue />
@@ -163,8 +147,8 @@ const Finance = () => {
           <Card className="mb-4">
             <CardHeader>
               <CardTitle className="text-sm flex justify-between">
-                <span>Расходы по дням</span>
-                <span className="text-accent">{monthTotal.toLocaleString("uk")} ₴</span>
+                <span>{t("finance.byDay")}</span>
+                <span className="text-accent">{monthTotal.toLocaleString(locale)} {sym}</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -173,7 +157,7 @@ const Finance = () => {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="day" tick={{ fontSize: 10 }} />
                   <YAxis tick={{ fontSize: 10 }} />
-                  <Tooltip formatter={(v: number) => `${v.toLocaleString("uk")} ₴`} />
+                  <Tooltip formatter={(v: number) => `${v.toLocaleString(locale)} ${sym}`} />
                   <Bar dataKey="spent" fill="hsl(222, 42%, 21%)" radius={[2, 2, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -183,7 +167,7 @@ const Finance = () => {
       ) : (
         <Card className="mb-4">
           <CardHeader>
-            <CardTitle className="text-sm">Расходы по месяцам ({format(now, "yyyy")})</CardTitle>
+            <CardTitle className="text-sm">{t("finance.byMonths", { year: format(now, "yyyy") })}</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>
@@ -191,7 +175,7 @@ const Finance = () => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" tick={{ fontSize: 10 }} />
                 <YAxis tick={{ fontSize: 10 }} />
-                <Tooltip formatter={(v: number) => `${v.toLocaleString("uk")} ₴`} />
+                <Tooltip formatter={(v: number) => `${v.toLocaleString(locale)} ${sym}`} />
                 <Line type="monotone" dataKey="spent" stroke="hsl(45, 91%, 53%)" strokeWidth={2} dot={{ fill: "hsl(45, 91%, 53%)" }} />
               </LineChart>
             </ResponsiveContainer>
@@ -199,12 +183,11 @@ const Finance = () => {
         </Card>
       )}
 
-      {/* By Category - filtered by period */}
       {categorySpending.length > 0 && (
         <Card className="mb-4">
           <CardHeader>
             <CardTitle className="text-sm">
-              Расходы по категориям ({viewMode === "month" ? monthOptions.find(o => o.value === selectedMonth)?.label : format(now, "yyyy")})
+              {t("finance.byCategories", { period: viewMode === "month" ? monthOptions.find(o => o.value === selectedMonth)?.label ?? "" : format(now, "yyyy") })}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -213,7 +196,7 @@ const Finance = () => {
                 <Pie data={categorySpending} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80}>
                   {categorySpending.map((_, idx) => <Cell key={idx} fill={COLORS[idx % COLORS.length]} />)}
                 </Pie>
-                <Tooltip formatter={(v: number) => `${v.toLocaleString("uk")} ₴`} />
+                <Tooltip formatter={(v: number) => `${v.toLocaleString(locale)} ${sym}`} />
               </PieChart>
             </ResponsiveContainer>
             <div className="space-y-2 mt-4">
@@ -223,7 +206,7 @@ const Finance = () => {
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
                     <span className="text-foreground">{c.name}</span>
                   </div>
-                  <span className="font-semibold text-foreground">{c.value.toLocaleString("uk")} ₴</span>
+                  <span className="font-semibold text-foreground">{c.value.toLocaleString(locale)} {sym}</span>
                 </div>
               ))}
             </div>
@@ -231,11 +214,10 @@ const Finance = () => {
         </Card>
       )}
 
-      {/* Recent purchases */}
       {recentPurchases.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Последние покупки</CardTitle>
+            <CardTitle className="text-sm">{t("finance.recent")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {recentPurchases.map(item => (
@@ -248,7 +230,7 @@ const Finance = () => {
                   <p className="text-sm font-medium text-foreground truncate">{item.name}</p>
                   <p className="text-xs text-muted-foreground">{format(new Date(item.purchase_date!), "dd.MM.yyyy")}</p>
                 </div>
-                <span className="text-sm font-semibold text-foreground ml-2">{item.price?.toLocaleString("uk")} {getCurrencySymbol(item.currency)}</span>
+                <span className="text-sm font-semibold text-foreground ml-2">{item.price?.toLocaleString(locale)} {getCurrencySymbol(item.currency)}</span>
               </div>
             ))}
           </CardContent>

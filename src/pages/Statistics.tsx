@@ -3,7 +3,8 @@ import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { differenceInDays, format, startOfMonth, subMonths } from "date-fns";
+import { differenceInDays, startOfMonth, subMonths } from "date-fns";
+import { useI18n, formatMonthShortByLocale } from "@/hooks/usePreferences";
 
 const COLORS = ["#1E2A4A", "#F5C518", "#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#06B6D4"];
 
@@ -11,12 +12,13 @@ const Statistics = () => {
   const { data: items, isLoading } = useItems();
   const { data: categories } = useCategories();
   const { data: locations } = useLocations();
+  const { t, locale, currency } = useI18n();
   const now = new Date();
 
   if (isLoading) {
     return (
       <AppLayout>
-        <h1 className="text-2xl font-bold text-foreground mb-6">📊 Статистика</h1>
+        <h1 className="text-2xl font-bold text-foreground mb-6">📊 {t("statistics.title")}</h1>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[1, 2, 3, 4, 5, 6].map((i) => <Skeleton key={i} className="h-48 rounded-lg" />)}
         </div>
@@ -28,6 +30,8 @@ const Statistics = () => {
   const totalItems = allItems.length;
   const totalValue = allItems.reduce((sum, i) => sum + (i.price ?? 0), 0);
   const avgValue = totalItems > 0 ? totalValue / totalItems : 0;
+
+  const sym = getCurrencySymbol(currency);
 
   const categoryData = categories?.map(c => ({
     name: `${c.icon} ${c.name}`,
@@ -45,7 +49,7 @@ const Statistics = () => {
     const start = startOfMonth(month);
     const end = startOfMonth(subMonths(now, 4 - i));
     return {
-      name: format(month, "MMM"),
+      name: formatMonthShortByLocale(month, locale),
       count: allItems.filter(item => {
         const d = new Date(item.created_at);
         return d >= start && d < (i === 5 ? new Date(9999, 0) : end);
@@ -65,25 +69,25 @@ const Statistics = () => {
 
   return (
     <AppLayout>
-      <h1 className="text-2xl font-bold text-foreground mb-6">📊 Статистика</h1>
+      <h1 className="text-2xl font-bold text-foreground mb-6">📊 {t("statistics.title")}</h1>
 
       <div className="grid grid-cols-3 gap-3 mb-6">
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold text-foreground">{totalItems}</p>
-            <p className="text-xs text-muted-foreground">Всего вещей</p>
+            <p className="text-xs text-muted-foreground">{t("statistics.totalItems")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-foreground">{totalValue.toLocaleString("uk")}</p>
-            <p className="text-xs text-muted-foreground">Стоимость ₴</p>
+            <p className="text-2xl font-bold text-foreground">{totalValue.toLocaleString(locale)}</p>
+            <p className="text-xs text-muted-foreground">{t("statistics.totalValue")} {sym}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-foreground">{Math.round(avgValue).toLocaleString("uk")}</p>
-            <p className="text-xs text-muted-foreground">Средняя ₴</p>
+            <p className="text-2xl font-bold text-foreground">{Math.round(avgValue).toLocaleString(locale)}</p>
+            <p className="text-xs text-muted-foreground">{t("statistics.average")} {sym}</p>
           </CardContent>
         </Card>
       </div>
@@ -91,7 +95,7 @@ const Statistics = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {categoryData.length > 0 && (
           <Card>
-            <CardHeader><CardTitle className="text-sm">По категориям</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-sm">{t("statistics.byCategories")}</CardTitle></CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={categoryData} layout="vertical" margin={{ left: 0 }}>
@@ -107,7 +111,7 @@ const Statistics = () => {
 
         {locationData.length > 0 && (
           <Card>
-            <CardHeader><CardTitle className="text-sm">По локациям</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-sm">{t("statistics.byLocations")}</CardTitle></CardHeader>
             <CardContent className="flex justify-center">
               <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
@@ -122,7 +126,7 @@ const Statistics = () => {
         )}
 
         <Card>
-          <CardHeader><CardTitle className="text-sm">По месяцам</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-sm">{t("statistics.byMonths")}</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>
               <LineChart data={monthData}>
@@ -137,18 +141,18 @@ const Statistics = () => {
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="text-sm">Сроки годности</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-sm">{t("statistics.expiry")}</CardTitle></CardHeader>
           <CardContent className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">🟢 Годные</span>
+              <span className="text-sm text-muted-foreground">🟢 {t("statistics.active")}</span>
               <span className="font-bold text-foreground">{activeExpiry}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">🟡 Заканчивается в этом месяце</span>
+              <span className="text-sm text-muted-foreground">🟡 {t("statistics.expiringMonth")}</span>
               <span className="font-bold text-foreground">{expiringThisMonth}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">🔴 Просрочено</span>
+              <span className="text-sm text-muted-foreground">🔴 {t("statistics.expired")}</span>
               <span className="font-bold text-foreground">{expiredExpiry}</span>
             </div>
           </CardContent>
@@ -156,7 +160,7 @@ const Statistics = () => {
 
         {top5.length > 0 && (
           <Card className="md:col-span-2">
-            <CardHeader><CardTitle className="text-sm">🏆 Топ-5 самых дорогих</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-sm">🏆 {t("statistics.topFive")}</CardTitle></CardHeader>
             <CardContent>
               <div className="space-y-2">
                 {top5.map((item, idx) => (
@@ -164,7 +168,7 @@ const Statistics = () => {
                     <span className="text-lg font-bold text-muted-foreground w-6">{idx + 1}</span>
                     <span className="text-lg">{item.categories?.icon ?? "📦"}</span>
                     <span className="flex-1 text-sm font-medium text-foreground truncate">{item.name}</span>
-                    <span className="text-sm font-bold text-foreground">{item.price?.toLocaleString("uk")} {getCurrencySymbol(item.currency)}</span>
+                    <span className="text-sm font-bold text-foreground">{item.price?.toLocaleString(locale)} {getCurrencySymbol(item.currency)}</span>
                   </div>
                 ))}
               </div>

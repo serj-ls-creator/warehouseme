@@ -14,11 +14,9 @@ import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight, Check, Search, Loader2, Camera, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { usePreferences } from "@/hooks/usePreferences";
+import { useI18n } from "@/hooks/usePreferences";
 import { isEmoji } from "@/lib/isEmoji";
 import IconSelect from "@/components/IconSelect";
-
-const steps = ["Основное", "Место", "Покупка", "Заметки"];
 
 const ICON_OPTIONS = [
   "📦", "💻", "📱", "🔧", "👕", "🍳", "🧸", "💊", "📚", "🎮",
@@ -38,7 +36,7 @@ const ItemForm = () => {
   const isEdit = !!id && id !== "new";
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { currency: defaultCurrency } = usePreferences();
+  const { currency: defaultCurrency, t } = useI18n();
   const { toast } = useToast();
   const { data: existingItem } = useItem(isEdit ? id : "");
   const { data: categories } = useCategories();
@@ -122,9 +120,9 @@ const ItemForm = () => {
         const desc = form.description ? `${form.description}\nБренд: ${result.brand}` : `Бренд: ${result.brand}`;
         update("description", desc);
       }
-      toast({ title: "Товар найден!", description: result.name || "Данные заполнены автоматически" });
+      toast({ title: t("itemForm.found"), description: result.name || t("itemForm.filled") });
     } else {
-      toast({ title: "Товар не найден", description: "Попробуйте ввести данные вручную", variant: "destructive" });
+      toast({ title: t("itemForm.notFound"), description: t("itemForm.fillManual"), variant: "destructive" });
     }
   };
 
@@ -156,7 +154,7 @@ const ItemForm = () => {
       const { data: urlData } = supabase.storage.from("item-photos").getPublicUrl(filePath);
       return urlData.publicUrl;
     } catch (err: any) {
-      toast({ title: "Ошибка загрузки фото", description: err.message, variant: "destructive" });
+      toast({ title: t("itemForm.uploadError"), description: err.message, variant: "destructive" });
       return null;
     } finally {
       setUploading(false);
@@ -167,7 +165,7 @@ const ItemForm = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
-      toast({ title: "Файл слишком большой", description: "Максимум 5 МБ", variant: "destructive" });
+      toast({ title: t("itemForm.fileTooLarge"), description: t("itemForm.fileTooLargeDescription"), variant: "destructive" });
       return;
     }
     setPhotoFile(file);
@@ -256,14 +254,14 @@ const ItemForm = () => {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <h1 className="text-xl font-bold text-foreground">
-          {isEdit ? "Редактировать вещь" : "Добавить вещь"}
+          {isEdit ? t("itemForm.editTitle") : t("itemForm.addTitle")}
         </h1>
       </div>
 
       {/* Progress - fixed mobile spacing */}
       <div className="mb-6">
         <div className="flex justify-between gap-1.5 sm:gap-2 text-xs text-muted-foreground mb-2">
-          {steps.map((s, i) => (
+          {[t("itemForm.stepBasic"), t("itemForm.stepLocation"), t("itemForm.stepPurchase"), t("itemForm.stepNotes")].map((s, i) => (
             <span
               key={s}
               className={`text-center flex-1 px-1.5 py-1.5 rounded-md transition-colors whitespace-nowrap text-[10px] sm:text-xs ${
@@ -276,7 +274,7 @@ const ItemForm = () => {
             </span>
           ))}
         </div>
-        <Progress value={((step + 1) / steps.length) * 100} className="h-1.5" />
+        <Progress value={((step + 1) / 4) * 100} className="h-1.5" />
       </div>
 
       <Card className="animate-fade-in">
@@ -285,17 +283,16 @@ const ItemForm = () => {
           {step === 0 && (
             <>
               <div>
-                <Label>Название *</Label>
-                <Input value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="Например: MacBook Pro" className="mt-1" />
+                <Label>{t("itemForm.name")}</Label>
+                <Input value={form.name} onChange={(e) => update("name", e.target.value)} placeholder={t("itemForm.namePlaceholder")} className="mt-1" />
               </div>
-              {/* Barcode under name */}
               <div>
-                <Label>Штрихкод (поиск товара)</Label>
+                <Label>{t("itemForm.barcode")}</Label>
                 <div className="flex gap-2 mt-1">
                   <Input
                     value={form.barcode}
                     onChange={(e) => update("barcode", e.target.value)}
-                    placeholder="Введите штрихкод"
+                    placeholder={t("itemForm.barcodePlaceholder")}
                     className="flex-1"
                   />
                   <Button
@@ -306,16 +303,16 @@ const ItemForm = () => {
                     {barcodeLookup.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">Введите штрихкод и нажмите поиск для автозаполнения</p>
+                <p className="text-xs text-muted-foreground mt-1">{t("itemForm.barcodeHint")}</p>
               </div>
               <div>
-                <Label>Описание</Label>
-                <Textarea value={form.description} onChange={(e) => update("description", e.target.value)} placeholder="Описание вещи" className="mt-1" rows={3} />
+                <Label>{t("itemForm.description")}</Label>
+                <Textarea value={form.description} onChange={(e) => update("description", e.target.value)} placeholder={t("itemForm.descriptionPlaceholder")} className="mt-1" rows={3} />
               </div>
 
               {/* Photo upload */}
               <div>
-                <Label className="mb-2 block">Фото товара</Label>
+                <Label className="mb-2 block">{t("itemForm.photo")}</Label>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -342,8 +339,8 @@ const ItemForm = () => {
                     onClick={() => fileInputRef.current?.click()}
                   >
                     <Camera className="h-8 w-8 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">Нажмите для загрузки фото</p>
-                    <p className="text-xs text-muted-foreground">Макс. 5 МБ</p>
+                    <p className="text-sm text-muted-foreground">{t("itemForm.uploadPhoto")}</p>
+                    <p className="text-xs text-muted-foreground">{t("itemForm.maxFile")}</p>
                   </div>
                 ) : null}
               </div>
@@ -357,11 +354,11 @@ const ItemForm = () => {
                     if (v) removePhoto();
                   }}
                 />
-                <Label>Использовать иконку вместо фото</Label>
+                <Label>{t("itemForm.useIcon")}</Label>
               </div>
               {useIcon && (
                 <div>
-                  <Label>Иконка товара</Label>
+                  <Label>{t("itemForm.itemIcon")}</Label>
                   <IconSelect
                     icons={ICON_OPTIONS}
                     value={form.icon || "📦"}
@@ -372,10 +369,10 @@ const ItemForm = () => {
               )}
 
               <div>
-                <Label>Категория</Label>
+                <Label>{t("itemForm.category")}</Label>
                 <Select value={form.category_id} onValueChange={(v) => update("category_id", v)}>
                   <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Выберите категорию" />
+                    <SelectValue placeholder={t("itemForm.selectCategory")} />
                   </SelectTrigger>
                   <SelectContent>
                     {getCategoryOptions().map((c) => (
@@ -386,7 +383,7 @@ const ItemForm = () => {
                   </SelectContent>
                 </Select>
                 <div className="flex gap-2 mt-2">
-                  <Input value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} placeholder="Новая категория" className="flex-1" />
+                  <Input value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} placeholder={t("itemForm.newCategory")} className="flex-1" />
                   <Button variant="outline" size="sm" onClick={handleAddCategory} disabled={!newCategoryName.trim()}>+</Button>
                 </div>
               </div>
@@ -397,10 +394,10 @@ const ItemForm = () => {
           {step === 1 && (
             <>
               <div>
-                <Label>Локация</Label>
+                <Label>{t("itemForm.location")}</Label>
                 <Select value={form.location_id} onValueChange={(v) => update("location_id", v)}>
                   <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Выберите локацию" />
+                    <SelectValue placeholder={t("itemForm.selectLocation")} />
                   </SelectTrigger>
                   <SelectContent>
                     {getLocationOptions().map((l) => (
@@ -411,7 +408,7 @@ const ItemForm = () => {
                   </SelectContent>
                 </Select>
                 <div className="flex gap-2 mt-2">
-                  <Input value={newLocationName} onChange={(e) => setNewLocationName(e.target.value)} placeholder="Новая локация" className="flex-1" />
+                  <Input value={newLocationName} onChange={(e) => setNewLocationName(e.target.value)} placeholder={t("itemForm.newLocation")} className="flex-1" />
                   <Button variant="outline" size="sm" onClick={handleAddLocation} disabled={!newLocationName.trim()}>+</Button>
                 </div>
               </div>
@@ -422,16 +419,16 @@ const ItemForm = () => {
           {step === 2 && (
             <>
               <div>
-                <Label>Дата покупки</Label>
+                <Label>{t("itemForm.purchaseDate")}</Label>
                 <Input type="date" value={form.purchase_date} onChange={(e) => update("purchase_date", e.target.value)} className="mt-1" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label>Цена</Label>
+                  <Label>{t("itemForm.price")}</Label>
                   <Input type="number" value={form.price} onChange={(e) => update("price", e.target.value)} placeholder="0" className="mt-1" />
                 </div>
                 <div>
-                  <Label>Валюта</Label>
+                  <Label>{t("itemForm.currency")}</Label>
                   <Select value={form.currency} onValueChange={(v) => update("currency", v)}>
                     <SelectTrigger className="mt-1">
                       <SelectValue />
@@ -446,16 +443,16 @@ const ItemForm = () => {
               </div>
               <div className="flex items-center gap-3">
                 <Switch checked={form.hasExpiry} onCheckedChange={(v) => update("hasExpiry", v)} />
-                <Label>Есть срок годности</Label>
+                <Label>{t("itemForm.hasExpiry")}</Label>
               </div>
               {form.hasExpiry && (
                 <div>
-                  <Label>Дата окончания срока годности</Label>
+                  <Label>{t("itemForm.expiryDate")}</Label>
                   <Input type="date" value={form.warranty_expires} onChange={(e) => update("warranty_expires", e.target.value)} className="mt-1" />
                 </div>
               )}
               <div>
-                <Label>Серийный номер</Label>
+                <Label>{t("itemForm.serial")}</Label>
                 <Input value={form.serial_number} onChange={(e) => update("serial_number", e.target.value)} placeholder="S/N" className="mt-1" />
               </div>
             </>
@@ -465,8 +462,8 @@ const ItemForm = () => {
           {step === 3 && (
             <>
               <div>
-                <Label>Заметки</Label>
-                <Textarea value={form.notes} onChange={(e) => update("notes", e.target.value)} placeholder="Дополнительная информация..." className="mt-1" rows={6} />
+                <Label>{t("itemForm.notes")}</Label>
+                <Textarea value={form.notes} onChange={(e) => update("notes", e.target.value)} placeholder={t("itemForm.notesPlaceholder")} className="mt-1" rows={6} />
               </div>
             </>
           )}
@@ -477,16 +474,16 @@ const ItemForm = () => {
       <div className="flex justify-between mt-6">
         <Button variant="outline" onClick={() => step > 0 ? setStep(step - 1) : navigate(-1)}>
           <ArrowLeft className="h-4 w-4 mr-1" />
-          {step > 0 ? "Назад" : "Отмена"}
+          {step > 0 ? t("itemForm.back") : t("itemForm.cancel")}
         </Button>
-        {step < steps.length - 1 ? (
+        {step < 3 ? (
           <Button onClick={() => setStep(step + 1)} disabled={!canNext}>
-            Далее <ArrowRight className="h-4 w-4 ml-1" />
+            {t("itemForm.next")} <ArrowRight className="h-4 w-4 ml-1" />
           </Button>
         ) : (
           <Button onClick={handleSubmit} disabled={!form.name.trim() || createItem.isPending || updateItem.isPending || uploading}>
             {uploading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Check className="h-4 w-4 mr-1" />}
-            {uploading ? "Загрузка..." : "Сохранить"}
+            {uploading ? t("itemForm.uploading") : t("itemForm.save")}
           </Button>
         )}
       </div>
