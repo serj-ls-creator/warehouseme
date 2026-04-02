@@ -120,9 +120,9 @@ const ItemForm = () => {
         const desc = form.description ? `${form.description}\nБренд: ${result.brand}` : `Бренд: ${result.brand}`;
         update("description", desc);
       }
-      toast({ title: "Товар найден!", description: result.name || "Данные заполнены автоматически" });
+      toast({ title: t("itemForm.found"), description: result.name || t("itemForm.filled") });
     } else {
-      toast({ title: "Товар не найден", description: "Попробуйте ввести данные вручную", variant: "destructive" });
+      toast({ title: t("itemForm.notFound"), description: t("itemForm.fillManual"), variant: "destructive" });
     }
   };
 
