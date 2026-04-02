@@ -358,7 +358,7 @@ const ItemForm = () => {
               </div>
               {useIcon && (
                 <div>
-                  <Label>Иконка товара</Label>
+                  <Label>{t("itemForm.itemIcon")}</Label>
                   <IconSelect
                     icons={ICON_OPTIONS}
                     value={form.icon || "📦"}
