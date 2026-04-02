@@ -312,7 +312,7 @@ const ItemForm = () => {
 
               {/* Photo upload */}
               <div>
-                <Label className="mb-2 block">Фото товара</Label>
+                <Label className="mb-2 block">{t("itemForm.photo")}</Label>
                 <input
                   ref={fileInputRef}
                   type="file"
