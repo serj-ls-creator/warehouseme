@@ -274,7 +274,7 @@ const ItemForm = () => {
             </span>
           ))}
         </div>
-        <Progress value={((step + 1) / steps.length) * 100} className="h-1.5" />
+        <Progress value={((step + 1) / 4) * 100} className="h-1.5" />
       </div>
 
       <Card className="animate-fade-in">
