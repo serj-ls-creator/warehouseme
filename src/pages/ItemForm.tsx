@@ -354,7 +354,7 @@ const ItemForm = () => {
                     if (v) removePhoto();
                   }}
                 />
-                <Label>Использовать иконку вместо фото</Label>
+                <Label>{t("itemForm.useIcon")}</Label>
               </div>
               {useIcon && (
                 <div>
