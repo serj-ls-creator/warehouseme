@@ -14,11 +14,9 @@ import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight, Check, Search, Loader2, Camera, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { usePreferences } from "@/hooks/usePreferences";
+import { useI18n } from "@/hooks/usePreferences";
 import { isEmoji } from "@/lib/isEmoji";
 import IconSelect from "@/components/IconSelect";
-
-const steps = ["Основное", "Место", "Покупка", "Заметки"];
 
 const ICON_OPTIONS = [
   "📦", "💻", "📱", "🔧", "👕", "🍳", "🧸", "💊", "📚", "🎮",
