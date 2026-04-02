@@ -154,7 +154,7 @@ const ItemForm = () => {
       const { data: urlData } = supabase.storage.from("item-photos").getPublicUrl(filePath);
       return urlData.publicUrl;
     } catch (err: any) {
-      toast({ title: "Ошибка загрузки фото", description: err.message, variant: "destructive" });
+      toast({ title: t("itemForm.uploadError"), description: err.message, variant: "destructive" });
       return null;
     } finally {
       setUploading(false);
