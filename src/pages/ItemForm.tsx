@@ -443,7 +443,7 @@ const ItemForm = () => {
               </div>
               <div className="flex items-center gap-3">
                 <Switch checked={form.hasExpiry} onCheckedChange={(v) => update("hasExpiry", v)} />
-                <Label>Есть срок годности</Label>
+                <Label>{t("itemForm.hasExpiry")}</Label>
               </div>
               {form.hasExpiry && (
                 <div>
