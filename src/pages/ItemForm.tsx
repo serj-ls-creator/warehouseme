@@ -428,7 +428,7 @@ const ItemForm = () => {
                   <Input type="number" value={form.price} onChange={(e) => update("price", e.target.value)} placeholder="0" className="mt-1" />
                 </div>
                 <div>
-                  <Label>Валюта</Label>
+                  <Label>{t("itemForm.currency")}</Label>
                   <Select value={form.currency} onValueChange={(v) => update("currency", v)}>
                     <SelectTrigger className="mt-1">
                       <SelectValue />
