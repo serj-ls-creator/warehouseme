@@ -165,7 +165,7 @@ const ItemForm = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
-      toast({ title: "Файл слишком большой", description: "Максимум 5 МБ", variant: "destructive" });
+      toast({ title: t("itemForm.fileTooLarge"), description: t("itemForm.fileTooLargeDescription"), variant: "destructive" });
       return;
     }
     setPhotoFile(file);
