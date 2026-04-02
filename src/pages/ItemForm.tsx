@@ -452,7 +452,7 @@ const ItemForm = () => {
                 </div>
               )}
               <div>
-                <Label>Серийный номер</Label>
+                <Label>{t("itemForm.serial")}</Label>
                 <Input value={form.serial_number} onChange={(e) => update("serial_number", e.target.value)} placeholder="S/N" className="mt-1" />
               </div>
             </>
