@@ -254,7 +254,7 @@ const ItemForm = () => {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <h1 className="text-xl font-bold text-foreground">
-          {isEdit ? "Редактировать вещь" : "Добавить вещь"}
+          {isEdit ? t("itemForm.editTitle") : t("itemForm.addTitle")}
         </h1>
       </div>
 
