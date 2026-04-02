@@ -408,7 +408,7 @@ const ItemForm = () => {
                   </SelectContent>
                 </Select>
                 <div className="flex gap-2 mt-2">
-                  <Input value={newLocationName} onChange={(e) => setNewLocationName(e.target.value)} placeholder="Новая локация" className="flex-1" />
+                  <Input value={newLocationName} onChange={(e) => setNewLocationName(e.target.value)} placeholder={t("itemForm.newLocation")} className="flex-1" />
                   <Button variant="outline" size="sm" onClick={handleAddLocation} disabled={!newLocationName.trim()}>+</Button>
                 </div>
               </div>
