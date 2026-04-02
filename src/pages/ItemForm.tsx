@@ -419,7 +419,7 @@ const ItemForm = () => {
           {step === 2 && (
             <>
               <div>
-                <Label>Дата покупки</Label>
+                <Label>{t("itemForm.purchaseDate")}</Label>
                 <Input type="date" value={form.purchase_date} onChange={(e) => update("purchase_date", e.target.value)} className="mt-1" />
               </div>
               <div className="grid grid-cols-2 gap-3">
