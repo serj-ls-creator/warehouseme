@@ -36,6 +36,7 @@ const Dashboard = () => {
 
   const getExpiryBadge = (expiresDate: string) => {
     const days = differenceInDays(new Date(expiresDate), now);
+    if (days < 0) return { label: t("dashboard.expired"), variant: "destructive" as const, color: "border-destructive text-destructive" };
     if (days < 7) return { label: `${days} ${t("dashboard.daysShort")}`, variant: "destructive" as const, color: "border-destructive text-destructive" };
     if (days < 30) return { label: `${days} ${t("dashboard.daysShort")}`, variant: "warning" as const, color: "border-warning text-warning" };
     return { label: `${days} ${t("dashboard.daysShort")}`, variant: "success" as const, color: "border-success text-success" };
