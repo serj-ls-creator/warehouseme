@@ -249,6 +249,25 @@ const SettingsPage = () => {
             <Button variant="outline" className="w-full justify-start" onClick={handleExportPdf}>
               <Download className="h-4 w-4 mr-2" /> {t("settings.exportPdf")}
             </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv,text/csv"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleImportCsv(f);
+              }}
+            />
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={importing}
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              {importing ? t("settings.importing") : t("settings.importCsv")}
+            </Button>
           </CardContent>
         </Card>
 
