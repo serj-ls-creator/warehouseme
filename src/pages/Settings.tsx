@@ -144,10 +144,10 @@ const SettingsPage = () => {
             <CardTitle className="text-sm">{t("settings.data")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Button variant="outline" className="w-full justify-start" disabled>
+            <Button variant="outline" className="w-full justify-start" onClick={handleExportCsv}>
               <Download className="h-4 w-4 mr-2" /> {t("settings.exportCsv")}
             </Button>
-            <Button variant="outline" className="w-full justify-start" disabled>
+            <Button variant="outline" className="w-full justify-start" onClick={handleExportPdf}>
               <Download className="h-4 w-4 mr-2" /> {t("settings.exportPdf")}
             </Button>
           </CardContent>
