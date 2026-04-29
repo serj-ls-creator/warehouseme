@@ -4,9 +4,12 @@ import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LogOut, User, Download } from "lucide-react";
+import { LogOut, User, Download, Upload } from "lucide-react";
 import { useItems, useCategories, useLocations, getCategoryDisplayName, getLocationDisplayName, getCurrencySymbol } from "@/hooks/useData";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { useRef, useState } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
