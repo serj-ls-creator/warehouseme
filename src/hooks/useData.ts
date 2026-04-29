@@ -88,7 +88,7 @@ export const getCurrencySymbol = (currency: string | null): string => {
   }
 };
 
-export const useItems = (filters?: { category_id?: string; location_id?: string; search?: string }) => {
+export const useItems = (filters?: { category_id?: string; location_id?: string; location_ids?: string[]; search?: string }) => {
   return useQuery({
     queryKey: ["items", filters],
     queryFn: async () => {
@@ -98,7 +98,8 @@ export const useItems = (filters?: { category_id?: string; location_id?: string;
         .order("created_at", { ascending: false });
 
       if (filters?.category_id) query = query.eq("category_id", filters.category_id);
-      if (filters?.location_id) query = query.eq("location_id", filters.location_id);
+      if (filters?.location_ids?.length) query = query.in("location_id", filters.location_ids);
+      else if (filters?.location_id) query = query.eq("location_id", filters.location_id);
       if (filters?.search) query = query.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%,serial_number.ilike.%${filters.search}%,notes.ilike.%${filters.search}%`);
 
       const { data, error } = await query;
