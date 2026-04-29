@@ -5,10 +5,78 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LogOut, User, Download } from "lucide-react";
+import { useItems, useCategories, useLocations, getCategoryDisplayName, getLocationDisplayName, getCurrencySymbol } from "@/hooks/useData";
+import { useToast } from "@/hooks/use-toast";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const SettingsPage = () => {
   const { user, signOut } = useAuth();
   const { currency, setCurrency, language, setLanguage, t } = useI18n();
+  const { data: items } = useItems();
+  const { data: categories } = useCategories();
+  const { data: locations } = useLocations();
+  const { toast } = useToast();
+
+  const formatDate = (d: string | null) => (d ? new Date(d).toLocaleDateString() : "");
+
+  const buildRows = () => {
+    if (!items) return [];
+    return items.map((i) => ({
+      name: i.name,
+      description: i.description ?? "",
+      category: i.category_id && categories ? getCategoryDisplayName(i.category_id, categories).replace(/\s+/g, " ").trim() : "",
+      location: i.location_id && locations ? (() => { const loc = locations.find(l => l.id === i.location_id); return loc ? getLocationDisplayName(loc, locations) : ""; })() : "",
+      price: i.price != null ? `${i.price} ${getCurrencySymbol(i.currency)}` : "",
+      purchase_date: formatDate(i.purchase_date),
+      warranty_expires: formatDate(i.warranty_expires),
+      serial_number: i.serial_number ?? "",
+      barcode: i.barcode ?? "",
+      notes: i.notes ?? "",
+    }));
+  };
+
+  const handleExportCsv = () => {
+    const rows = buildRows();
+    if (!rows.length) {
+      toast({ title: t("common.error"), description: t("dashboard.noItems"), variant: "destructive" });
+      return;
+    }
+    const headers = ["Name", "Description", "Category", "Location", "Price", "Purchase Date", "Expiry Date", "Serial #", "Barcode", "Notes"];
+    const escape = (v: string) => `"${String(v).replace(/"/g, '""')}"`;
+    const csv = [
+      headers.map(escape).join(","),
+      ...rows.map(r => [r.name, r.description, r.category, r.location, r.price, r.purchase_date, r.warranty_expires, r.serial_number, r.barcode, r.notes].map(escape).join(",")),
+    ].join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `warehouseme-items-${new Date().toISOString().split("T")[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: t("settings.exportCsv") + " ✓" });
+  };
+
+  const handleExportPdf = () => {
+    const rows = buildRows();
+    if (!rows.length) {
+      toast({ title: t("common.error"), description: t("dashboard.noItems"), variant: "destructive" });
+      return;
+    }
+    const doc = new jsPDF({ orientation: "landscape" });
+    doc.setFontSize(14);
+    doc.text("WarehouseMe - Items", 14, 14);
+    autoTable(doc, {
+      startY: 20,
+      head: [["Name", "Description", "Category", "Location", "Price", "Purchase", "Expiry", "Serial #"]],
+      body: rows.map(r => [r.name, r.description, r.category, r.location, r.price, r.purchase_date, r.warranty_expires, r.serial_number]),
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [30, 42, 74] },
+    });
+    doc.save(`warehouseme-items-${new Date().toISOString().split("T")[0]}.pdf`);
+    toast({ title: t("settings.exportPdf") + " ✓" });
+  };
 
   return (
     <AppLayout>
@@ -76,10 +144,10 @@ const SettingsPage = () => {
             <CardTitle className="text-sm">{t("settings.data")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Button variant="outline" className="w-full justify-start" disabled>
+            <Button variant="outline" className="w-full justify-start" onClick={handleExportCsv}>
               <Download className="h-4 w-4 mr-2" /> {t("settings.exportCsv")}
             </Button>
-            <Button variant="outline" className="w-full justify-start" disabled>
+            <Button variant="outline" className="w-full justify-start" onClick={handleExportPdf}>
               <Download className="h-4 w-4 mr-2" /> {t("settings.exportPdf")}
             </Button>
           </CardContent>
