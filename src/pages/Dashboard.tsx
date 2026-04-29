@@ -29,7 +29,7 @@ const Dashboard = () => {
   const expiringItems = items?.filter(i => {
     if (!i.warranty_expires) return false;
     const days = differenceInDays(new Date(i.warranty_expires), now);
-    return days >= 0 && days <= 90;
+    return days <= 90;
   }).sort((a, b) => new Date(a.warranty_expires!).getTime() - new Date(b.warranty_expires!).getTime()) ?? [];
 
   const recentItems = items?.slice(0, 4) ?? [];
