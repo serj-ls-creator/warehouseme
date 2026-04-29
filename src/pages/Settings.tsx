@@ -4,9 +4,12 @@ import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LogOut, User, Download } from "lucide-react";
+import { LogOut, User, Download, Upload } from "lucide-react";
 import { useItems, useCategories, useLocations, getCategoryDisplayName, getLocationDisplayName, getCurrencySymbol } from "@/hooks/useData";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { useRef, useState } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -17,8 +20,104 @@ const SettingsPage = () => {
   const { data: categories } = useCategories();
   const { data: locations } = useLocations();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [importing, setImporting] = useState(false);
 
   const formatDate = (d: string | null) => (d ? new Date(d).toLocaleDateString() : "");
+
+  // CSV parser supporting quoted fields with commas/newlines
+  const parseCsv = (text: string): string[][] => {
+    const rows: string[][] = [];
+    let row: string[] = [];
+    let cur = "";
+    let inQuotes = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (inQuotes) {
+        if (c === '"') {
+          if (text[i + 1] === '"') { cur += '"'; i++; }
+          else inQuotes = false;
+        } else cur += c;
+      } else {
+        if (c === '"') inQuotes = true;
+        else if (c === ",") { row.push(cur); cur = ""; }
+        else if (c === "\n" || c === "\r") {
+          if (c === "\r" && text[i + 1] === "\n") i++;
+          row.push(cur); cur = "";
+          if (row.some(v => v !== "")) rows.push(row);
+          row = [];
+        } else cur += c;
+      }
+    }
+    if (cur !== "" || row.length) { row.push(cur); rows.push(row); }
+    return rows;
+  };
+
+  const handleImportCsv = async (file: File) => {
+    setImporting(true);
+    try {
+      const text = (await file.text()).replace(/^\uFEFF/, "");
+      const rows = parseCsv(text);
+      if (rows.length < 2) throw new Error("Empty CSV");
+      const header = rows[0].map(h => h.trim().toLowerCase());
+      const idx = (names: string[]) => names.map(n => header.indexOf(n)).find(i => i >= 0) ?? -1;
+      const iName = idx(["name", "название", "назва"]);
+      const iDesc = idx(["description", "описание", "опис"]);
+      const iCat = idx(["category", "категория", "категорія"]);
+      const iLoc = idx(["location", "локация", "локація"]);
+      const iPrice = idx(["price", "цена", "ціна"]);
+      const iPurchase = idx(["purchase date", "purchase_date"]);
+      const iExpiry = idx(["expiry date", "expiry_date", "warranty"]);
+      const iSerial = idx(["serial #", "serial", "serial_number"]);
+      const iBarcode = idx(["barcode", "штрихкод"]);
+      const iNotes = idx(["notes", "заметки", "нотатки"]);
+      if (iName < 0) throw new Error("Missing 'Name' column");
+
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) throw new Error("Not authenticated");
+
+      const findId = <T extends { id: string; name: string }>(list: T[] | undefined, val: string) =>
+        list?.find(x => x.name.toLowerCase() === val.toLowerCase())?.id ?? null;
+      const parseDate = (s: string) => {
+        if (!s) return null;
+        const d = new Date(s);
+        return isNaN(d.getTime()) ? null : d.toISOString().split("T")[0];
+      };
+      const parsePrice = (s: string) => {
+        const n = parseFloat(s.replace(/[^0-9.,-]/g, "").replace(",", "."));
+        return isNaN(n) ? null : n;
+      };
+
+      const records = rows.slice(1).filter(r => r[iName]?.trim()).map(r => ({
+        user_id: authUser.id,
+        name: r[iName].trim(),
+        description: iDesc >= 0 ? (r[iDesc]?.trim() || null) : null,
+        category_id: iCat >= 0 ? findId(categories, r[iCat]?.split("→").pop()?.trim() || "") : null,
+        location_id: iLoc >= 0 ? findId(locations, r[iLoc]?.split("→").pop()?.trim() || "") : null,
+        price: iPrice >= 0 ? parsePrice(r[iPrice] || "") : null,
+        currency,
+        purchase_date: iPurchase >= 0 ? parseDate(r[iPurchase] || "") : null,
+        warranty_expires: iExpiry >= 0 ? parseDate(r[iExpiry] || "") : null,
+        serial_number: iSerial >= 0 ? (r[iSerial]?.trim() || null) : null,
+        barcode: iBarcode >= 0 ? (r[iBarcode]?.trim() || null) : null,
+        notes: iNotes >= 0 ? (r[iNotes]?.trim() || null) : null,
+        photo_url: null,
+      }));
+
+      if (!records.length) throw new Error("No rows to import");
+      const { error } = await supabase.from("items").insert(records);
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ["items"] });
+      toast({ title: t("settings.importSuccess").replace("{count}", String(records.length)) });
+    } catch (e) {
+      toast({ title: t("settings.importError"), description: (e as Error).message, variant: "destructive" });
+    } finally {
+      setImporting(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
   const buildRows = () => {
     if (!items) return [];
@@ -149,6 +248,25 @@ const SettingsPage = () => {
             </Button>
             <Button variant="outline" className="w-full justify-start" onClick={handleExportPdf}>
               <Download className="h-4 w-4 mr-2" /> {t("settings.exportPdf")}
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv,text/csv"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleImportCsv(f);
+              }}
+            />
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={importing}
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              {importing ? t("settings.importing") : t("settings.importCsv")}
             </Button>
           </CardContent>
         </Card>
