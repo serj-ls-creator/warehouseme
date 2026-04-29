@@ -37,13 +37,22 @@ const Items = () => {
     setLocationFilter(searchParams.get("location") ?? "");
   }, [searchParams]);
 
+  const { data: categories } = useCategories();
+  const { data: locations } = useLocations();
+
+  const getLocationDescendantIds = (locationId: string): string[] => {
+    if (!locations) return [locationId];
+    const childIds = locations.filter((location) => location.parent_id === locationId).map((location) => location.id);
+    return [locationId, ...childIds.flatMap(getLocationDescendantIds)];
+  };
+
+  const locationFilterIds = locationFilter ? getLocationDescendantIds(locationFilter) : undefined;
+
   const { data: items, isLoading } = useItems({
     search: search || undefined,
     category_id: categoryFilter || undefined,
-    location_id: locationFilter || undefined,
+    location_ids: locationFilterIds,
   });
-  const { data: categories } = useCategories();
-  const { data: locations } = useLocations();
 
   const handleCategoryChange = (value: string) => {
     setCategoryFilter(value === "all" ? "" : value);
@@ -170,15 +179,16 @@ const Items = () => {
           </Select>
 
           {/* Location tree filter */}
-          <div className="relative">
+          <div className="relative flex-shrink-0">
             <Button
               variant="outline"
-              className="w-[150px] flex-shrink-0 justify-start text-left bg-card"
+              className="w-[150px] justify-between text-left bg-card"
               onClick={() => setLocationTreeOpen(!locationTreeOpen)}
             >
               <span className="truncate text-sm">
                 {selectedLocationName ? `${selectedLocationName.icon ?? "📍"} ${selectedLocationName.name}` : t("items.allLocations")}
               </span>
+              <ChevronDown className="h-4 w-4 flex-shrink-0 opacity-50" />
             </Button>
             {locationTreeOpen && (
               <div className="absolute top-full left-0 mt-1 z-50 bg-card border rounded-lg shadow-lg p-2 min-w-[220px] max-h-[300px] overflow-y-auto">
