@@ -282,6 +282,12 @@ const translations: Record<AppLanguage, TranslationTree> = {
       locationUpdated: "Локацію оновлено",
       locationDeleted: "Локацію видалено",
       lookupError: "Помилка пошуку",
+      savedOffline: "Збережено офлайн",
+    },
+    offline: {
+      noConnection: "Немає з'єднання",
+      pending: "в черзі",
+      sync: "Синхронізувати",
     },
   },
   ru: {
@@ -537,6 +543,12 @@ const translations: Record<AppLanguage, TranslationTree> = {
       locationUpdated: "Локация обновлена",
       locationDeleted: "Локация удалена",
       lookupError: "Ошибка поиска",
+      savedOffline: "Сохранено офлайн",
+    },
+    offline: {
+      noConnection: "Нет соединения",
+      pending: "в очереди",
+      sync: "Синхронизировать",
     },
   },
   en: {
@@ -792,6 +804,12 @@ const translations: Record<AppLanguage, TranslationTree> = {
       locationUpdated: "Location updated",
       locationDeleted: "Location deleted",
       lookupError: "Lookup error",
+      savedOffline: "Saved offline",
+    },
+    offline: {
+      noConnection: "No connection",
+      pending: "pending",
+      sync: "Sync now",
     },
   },
 };

@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/hooks/usePreferences";
+import { useOfflineQueue } from "@/hooks/useOfflineQueue";
 
 export interface Item {
   id: string;
@@ -129,16 +130,21 @@ export const useCreateItem = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { t } = useI18n();
+  const { isOnline, enqueue } = useOfflineQueue();
 
   return useMutation({
     mutationFn: async (item: Omit<Item, "id" | "created_at" | "updated_at" | "categories" | "locations">) => {
+      if (!isOnline) {
+        enqueue({ type: "create", table: "items", payload: item });
+        return { id: crypto.randomUUID(), ...item } as any;
+      }
       const { data, error } = await supabase.from("items").insert(item).select().single();
       if (error) throw error;
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["items"] });
-      toast({ title: t("toasts.itemAdded") });
+      toast({ title: isOnline ? t("toasts.itemAdded") : t("toasts.savedOffline") });
     },
     onError: (e: Error) => {
       toast({ title: t("common.error"), description: e.message, variant: "destructive" });
@@ -150,10 +156,15 @@ export const useUpdateItem = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { t } = useI18n();
+  const { isOnline, enqueue } = useOfflineQueue();
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Item> & { id: string }) => {
       const { categories, locations, ...cleanUpdates } = updates as any;
+      if (!isOnline) {
+        enqueue({ type: "update", table: "items", payload: { id, ...cleanUpdates } });
+        return { id, ...cleanUpdates } as any;
+      }
       const { data, error } = await supabase.from("items").update(cleanUpdates).eq("id", id).select().single();
       if (error) throw error;
       return data;
@@ -161,7 +172,7 @@ export const useUpdateItem = () => {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["items"] });
       queryClient.invalidateQueries({ queryKey: ["item", data.id] });
-      toast({ title: t("toasts.itemUpdated") });
+      toast({ title: isOnline ? t("toasts.itemUpdated") : t("toasts.savedOffline") });
     },
     onError: (e: Error) => {
       toast({ title: t("common.error"), description: e.message, variant: "destructive" });

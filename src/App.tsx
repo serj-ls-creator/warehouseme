@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { PreferencesProvider } from "@/hooks/usePreferences";
+import { OfflineQueueProvider } from "@/hooks/useOfflineQueue";
+import OfflineBanner from "@/components/OfflineBanner";
 import Dashboard from "./pages/Dashboard";
 import Items from "./pages/Items";
 import ItemDetail from "./pages/ItemDetail";
@@ -59,13 +61,16 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <PreferencesProvider>
       <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AppRoutes />
-          </BrowserRouter>
-        </TooltipProvider>
+        <OfflineQueueProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <OfflineBanner />
+              <AppRoutes />
+            </BrowserRouter>
+          </TooltipProvider>
+        </OfflineQueueProvider>
       </AuthProvider>
     </PreferencesProvider>
   </QueryClientProvider>
