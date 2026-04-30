@@ -4,6 +4,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/hooks/usePreferences";
 import { useOfflineQueue } from "@/hooks/useOfflineQueue";
+import { precacheUrls } from "@/lib/precache";
+import { isEmoji } from "@/lib/isEmoji";
 
 export interface Item {
   id: string;
