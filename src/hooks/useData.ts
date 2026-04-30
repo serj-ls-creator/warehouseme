@@ -92,24 +92,32 @@ export const getCurrencySymbol = (currency: string | null): string => {
 };
 
 export const useItems = (filters?: { category_id?: string; location_id?: string; location_ids?: string[]; search?: string }) => {
-  return useQuery({
+  const query = useQuery({
     queryKey: ["items", filters],
     queryFn: async () => {
-      let query = supabase
+      let q = supabase
         .from("items")
         .select("*, categories(name, icon, color), locations(name, icon)")
         .order("created_at", { ascending: false });
 
-      if (filters?.category_id) query = query.eq("category_id", filters.category_id);
-      if (filters?.location_ids?.length) query = query.in("location_id", filters.location_ids);
-      else if (filters?.location_id) query = query.eq("location_id", filters.location_id);
-      if (filters?.search) query = query.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%,serial_number.ilike.%${filters.search}%,notes.ilike.%${filters.search}%`);
+      if (filters?.category_id) q = q.eq("category_id", filters.category_id);
+      if (filters?.location_ids?.length) q = q.in("location_id", filters.location_ids);
+      else if (filters?.location_id) q = q.eq("location_id", filters.location_id);
+      if (filters?.search) q = q.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%,serial_number.ilike.%${filters.search}%,notes.ilike.%${filters.search}%`);
 
-      const { data, error } = await query;
+      const { data, error } = await q;
       if (error) throw error;
+
+      // Pre-cache all item photos for offline access
+      const photoUrls = (data as Item[])
+        .map((i) => i.photo_url)
+        .filter((u): u is string => !!u && !isEmoji(u));
+      precacheUrls(photoUrls);
+
       return data as Item[];
     },
   });
+  return query;
 };
 
 export const useItem = (id: string) => {
