@@ -282,6 +282,12 @@ const translations: Record<AppLanguage, TranslationTree> = {
       locationUpdated: "Локацію оновлено",
       locationDeleted: "Локацію видалено",
       lookupError: "Помилка пошуку",
+      savedOffline: "Збережено офлайн",
+    },
+    offline: {
+      noConnection: "Немає з'єднання",
+      pending: "в черзі",
+      sync: "Синхронізувати",
     },
   },
   ru: {
