@@ -43,10 +43,10 @@ const Dashboard = () => {
   };
 
   const stats = [
-    { label: t("dashboard.totalItems"), value: totalItems, icon: Package, iconClassName: "text-primary", cardClassName: "bg-stat-blue", onClick: () => navigate("/items") },
-    { label: t("dashboard.totalValue"), value: `${formatNumberByLocale(totalValue, locale)} ₴`, icon: DollarSign, iconClassName: "text-success", cardClassName: "bg-stat-green", onClick: () => navigate("/finance") },
-    { label: t("dashboard.expiry"), value: expiringItems.length, icon: Clock, iconClassName: "text-warning", cardClassName: "bg-stat-yellow", onClick: () => navigate("/expiry") },
-    { label: t("dashboard.thisMonth"), value: addedThisMonth, icon: CalendarPlus, iconClassName: "text-foreground", cardClassName: "bg-stat-purple", onClick: undefined },
+    { label: t("dashboard.totalItems"), value: totalItems, icon: Package, iconClassName: "text-blue-600 dark:text-blue-400", cardClassName: "bg-stat-blue", bgIcon: "text-blue-500/[0.07] dark:text-blue-400/[0.08]", onClick: () => navigate("/items") },
+    { label: t("dashboard.totalValue"), value: `${formatNumberByLocale(totalValue, locale)} ₴`, icon: DollarSign, iconClassName: "text-emerald-600 dark:text-emerald-400", cardClassName: "bg-stat-green", bgIcon: "text-emerald-500/[0.07] dark:text-emerald-400/[0.08]", onClick: () => navigate("/finance") },
+    { label: t("dashboard.expiry"), value: expiringItems.length, icon: Clock, iconClassName: "text-amber-600 dark:text-amber-400", cardClassName: "bg-stat-yellow", bgIcon: "text-amber-500/[0.07] dark:text-amber-400/[0.08]", onClick: () => navigate("/expiry") },
+    { label: t("dashboard.thisMonth"), value: addedThisMonth, icon: CalendarPlus, iconClassName: "text-violet-600 dark:text-violet-400", cardClassName: "bg-stat-purple", bgIcon: "text-violet-500/[0.07] dark:text-violet-400/[0.08]", onClick: undefined },
   ];
 
   return (
