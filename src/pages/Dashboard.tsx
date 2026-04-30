@@ -60,21 +60,23 @@ const Dashboard = () => {
         {stats.map((stat) => (
           <Card
             key={stat.label}
-            className={`animate-fade-in border-transparent ${stat.cardClassName} ${stat.onClick ? "cursor-pointer hover:shadow-lg transition-all hover:scale-[1.02]" : ""}`}
+            className={`animate-fade-in border-transparent overflow-hidden relative ${stat.cardClassName} ${stat.onClick ? "cursor-pointer hover:shadow-lg transition-all hover:scale-[1.02]" : ""}`}
             onClick={stat.onClick}
           >
-            <CardContent className="p-5">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="p-2 rounded-xl bg-background/60">
-                  <stat.icon className={`h-6 w-6 ${stat.iconClassName}`} />
+            {/* Large decorative background icon */}
+            <stat.icon className={`absolute -right-3 -bottom-3 h-24 w-24 ${stat.bgIcon} pointer-events-none`} strokeWidth={1.2} />
+            <CardContent className="p-5 relative z-10">
+              <div className="flex items-center gap-2.5 mb-3">
+                <div className="p-2 rounded-xl bg-background/50 backdrop-blur-sm shadow-sm">
+                  <stat.icon className={`h-5 w-5 ${stat.iconClassName}`} />
                 </div>
+                <span className="text-sm font-semibold text-muted-foreground leading-tight">{stat.label}</span>
               </div>
               {isLoading ? (
-                <Skeleton className="h-10 w-24 mb-1" />
+                <Skeleton className="h-10 w-24" />
               ) : (
                 <p className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight">{stat.value}</p>
               )}
-              <span className="text-xs font-medium text-muted-foreground mt-1 block">{stat.label}</span>
             </CardContent>
           </Card>
         ))}
