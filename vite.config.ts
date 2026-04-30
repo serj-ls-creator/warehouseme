@@ -34,6 +34,23 @@ export default defineConfig(({ mode }) => ({
               networkTimeoutSeconds: 3,
             },
           },
+          // Supabase Storage images & documents — cache aggressively for offline
+          {
+            urlPattern: ({ url }) =>
+              url.hostname.includes("supabase") &&
+              url.pathname.includes("/storage/v1/object/"),
+            handler: "CacheFirst",
+            options: {
+              cacheName: "supabase-storage",
+              expiration: {
+                maxEntries: 500,
+                maxAgeSeconds: 90 * 24 * 60 * 60, // 90 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
           {
             urlPattern: ({ request }) => request.destination === "image",
             handler: "CacheFirst",
@@ -41,7 +58,7 @@ export default defineConfig(({ mode }) => ({
               cacheName: "images",
               expiration: {
                 maxEntries: 200,
-                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+                maxAgeSeconds: 30 * 24 * 60 * 60,
               },
             },
           },
@@ -57,15 +74,18 @@ export default defineConfig(({ mode }) => ({
               },
             },
           },
+          // Supabase API (non-storage) — network first
           {
-            urlPattern: ({ url }) => url.hostname.includes("supabase"),
+            urlPattern: ({ url }) =>
+              url.hostname.includes("supabase") &&
+              !url.pathname.includes("/storage/v1/object/"),
             handler: "NetworkFirst",
             options: {
               cacheName: "api-cache",
               networkTimeoutSeconds: 5,
               expiration: {
                 maxEntries: 50,
-                maxAgeSeconds: 5 * 60, // 5 min
+                maxAgeSeconds: 5 * 60,
               },
             },
           },
