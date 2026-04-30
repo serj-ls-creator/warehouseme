@@ -130,16 +130,21 @@ export const useCreateItem = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { t } = useI18n();
+  const { isOnline, enqueue } = useOfflineQueue();
 
   return useMutation({
     mutationFn: async (item: Omit<Item, "id" | "created_at" | "updated_at" | "categories" | "locations">) => {
+      if (!isOnline) {
+        enqueue({ type: "create", table: "items", payload: item });
+        return { id: crypto.randomUUID(), ...item } as any;
+      }
       const { data, error } = await supabase.from("items").insert(item).select().single();
       if (error) throw error;
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["items"] });
-      toast({ title: t("toasts.itemAdded") });
+      toast({ title: isOnline ? t("toasts.itemAdded") : t("toasts.savedOffline") });
     },
     onError: (e: Error) => {
       toast({ title: t("common.error"), description: e.message, variant: "destructive" });
