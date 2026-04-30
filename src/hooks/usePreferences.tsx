@@ -804,6 +804,12 @@ const translations: Record<AppLanguage, TranslationTree> = {
       locationUpdated: "Location updated",
       locationDeleted: "Location deleted",
       lookupError: "Lookup error",
+      savedOffline: "Saved offline",
+    },
+    offline: {
+      noConnection: "No connection",
+      pending: "pending",
+      sync: "Sync now",
     },
   },
 };
