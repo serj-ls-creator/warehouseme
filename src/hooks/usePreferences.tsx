@@ -543,6 +543,12 @@ const translations: Record<AppLanguage, TranslationTree> = {
       locationUpdated: "Локация обновлена",
       locationDeleted: "Локация удалена",
       lookupError: "Ошибка поиска",
+      savedOffline: "Сохранено офлайн",
+    },
+    offline: {
+      noConnection: "Нет соединения",
+      pending: "в очереди",
+      sync: "Синхронизировать",
     },
   },
   en: {
