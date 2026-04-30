@@ -43,10 +43,10 @@ const Dashboard = () => {
   };
 
   const stats = [
-    { label: t("dashboard.totalItems"), value: totalItems, icon: Package, iconClassName: "text-primary", cardClassName: "bg-stat-blue", onClick: () => navigate("/items") },
-    { label: t("dashboard.totalValue"), value: `${formatNumberByLocale(totalValue, locale)} ₴`, icon: DollarSign, iconClassName: "text-success", cardClassName: "bg-stat-green", onClick: () => navigate("/finance") },
-    { label: t("dashboard.expiry"), value: expiringItems.length, icon: Clock, iconClassName: "text-warning", cardClassName: "bg-stat-yellow", onClick: () => navigate("/expiry") },
-    { label: t("dashboard.thisMonth"), value: addedThisMonth, icon: CalendarPlus, iconClassName: "text-foreground", cardClassName: "bg-stat-purple", onClick: undefined },
+    { label: t("dashboard.totalItems"), value: totalItems, icon: Package, iconClassName: "text-blue-600 dark:text-blue-400", cardClassName: "bg-stat-blue", bgIcon: "text-blue-500/[0.07] dark:text-blue-400/[0.08]", onClick: () => navigate("/items") },
+    { label: t("dashboard.totalValue"), value: `${formatNumberByLocale(totalValue, locale)} ₴`, icon: DollarSign, iconClassName: "text-emerald-600 dark:text-emerald-400", cardClassName: "bg-stat-green", bgIcon: "text-emerald-500/[0.07] dark:text-emerald-400/[0.08]", onClick: () => navigate("/finance") },
+    { label: t("dashboard.expiry"), value: expiringItems.length, icon: Clock, iconClassName: "text-amber-600 dark:text-amber-400", cardClassName: "bg-stat-yellow", bgIcon: "text-amber-500/[0.07] dark:text-amber-400/[0.08]", onClick: () => navigate("/expiry") },
+    { label: t("dashboard.thisMonth"), value: addedThisMonth, icon: CalendarPlus, iconClassName: "text-violet-600 dark:text-violet-400", cardClassName: "bg-stat-purple", bgIcon: "text-violet-500/[0.07] dark:text-violet-400/[0.08]", onClick: undefined },
   ];
 
   return (
@@ -60,21 +60,23 @@ const Dashboard = () => {
         {stats.map((stat) => (
           <Card
             key={stat.label}
-            className={`animate-fade-in border-transparent ${stat.cardClassName} ${stat.onClick ? "cursor-pointer hover:shadow-lg transition-all hover:scale-[1.02]" : ""}`}
+            className={`animate-fade-in border-transparent overflow-hidden relative ${stat.cardClassName} ${stat.onClick ? "cursor-pointer hover:shadow-lg transition-all hover:scale-[1.02]" : ""}`}
             onClick={stat.onClick}
           >
-            <CardContent className="p-5">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="p-2 rounded-xl bg-background/60">
-                  <stat.icon className={`h-6 w-6 ${stat.iconClassName}`} />
+            {/* Large decorative background icon */}
+            <stat.icon className={`absolute -right-3 -bottom-3 h-24 w-24 ${stat.bgIcon} pointer-events-none`} strokeWidth={1.2} />
+            <CardContent className="p-5 relative z-10">
+              <div className="flex items-center gap-2.5 mb-3">
+                <div className="p-2 rounded-xl bg-background/50 backdrop-blur-sm shadow-sm">
+                  <stat.icon className={`h-5 w-5 ${stat.iconClassName}`} />
                 </div>
+                <span className="text-sm font-semibold text-muted-foreground leading-tight">{stat.label}</span>
               </div>
               {isLoading ? (
-                <Skeleton className="h-10 w-24 mb-1" />
+                <Skeleton className="h-10 w-24" />
               ) : (
                 <p className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight">{stat.value}</p>
               )}
-              <span className="text-xs font-medium text-muted-foreground mt-1 block">{stat.label}</span>
             </CardContent>
           </Card>
         ))}
