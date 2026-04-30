@@ -156,10 +156,15 @@ export const useUpdateItem = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { t } = useI18n();
+  const { isOnline, enqueue } = useOfflineQueue();
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Item> & { id: string }) => {
       const { categories, locations, ...cleanUpdates } = updates as any;
+      if (!isOnline) {
+        enqueue({ type: "update", table: "items", payload: { id, ...cleanUpdates } });
+        return { id, ...cleanUpdates } as any;
+      }
       const { data, error } = await supabase.from("items").update(cleanUpdates).eq("id", id).select().single();
       if (error) throw error;
       return data;
@@ -167,7 +172,7 @@ export const useUpdateItem = () => {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["items"] });
       queryClient.invalidateQueries({ queryKey: ["item", data.id] });
-      toast({ title: t("toasts.itemUpdated") });
+      toast({ title: isOnline ? t("toasts.itemUpdated") : t("toasts.savedOffline") });
     },
     onError: (e: Error) => {
       toast({ title: t("common.error"), description: e.message, variant: "destructive" });
