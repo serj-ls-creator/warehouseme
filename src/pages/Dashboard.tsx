@@ -56,23 +56,25 @@ const Dashboard = () => {
         <Input placeholder={t("dashboard.searchPlaceholder")} value={search} onChange={(e) => setSearch(e.target.value)} className="pl-11 h-12 text-base bg-card" />
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         {stats.map((stat) => (
           <Card
             key={stat.label}
-            className={`animate-fade-in border-transparent ${stat.cardClassName} ${stat.onClick ? "cursor-pointer hover:shadow-md transition-shadow" : ""}`}
+            className={`animate-fade-in border-transparent ${stat.cardClassName} ${stat.onClick ? "cursor-pointer hover:shadow-lg transition-all hover:scale-[1.02]" : ""}`}
             onClick={stat.onClick}
           >
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <stat.icon className={`h-5 w-5 ${stat.iconClassName}`} />
-                <span className="text-xs text-muted-foreground">{stat.label}</span>
+            <CardContent className="p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="p-2 rounded-xl bg-background/60">
+                  <stat.icon className={`h-6 w-6 ${stat.iconClassName}`} />
+                </div>
               </div>
               {isLoading ? (
-                <Skeleton className="h-7 w-20" />
+                <Skeleton className="h-10 w-24 mb-1" />
               ) : (
-                <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+                <p className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight">{stat.value}</p>
               )}
+              <span className="text-xs font-medium text-muted-foreground mt-1 block">{stat.label}</span>
             </CardContent>
           </Card>
         ))}
